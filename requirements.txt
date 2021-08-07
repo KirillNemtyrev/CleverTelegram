@@ -1,5 +1,4 @@
 aiogram
-random
 request
 os
 asynsio

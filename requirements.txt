@@ -1,0 +1,7 @@
+aiogram
+random
+request
+os
+asynsio
+time
+bs4

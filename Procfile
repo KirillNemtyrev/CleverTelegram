@@ -1,0 +1,1 @@
+heroku worker: python main.py

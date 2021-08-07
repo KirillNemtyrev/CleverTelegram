@@ -1,1 +1,1 @@
-heroku worker: python main.py
+python main.py

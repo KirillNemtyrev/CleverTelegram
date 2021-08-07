@@ -1,7 +1,7 @@
-aiogram
+aiogram==2.14.3
 random
-request
+request==2.26.0
 os
 asynsio
 time
-bs4
+beautifulsoup4==4.9.3

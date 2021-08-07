@@ -7,12 +7,14 @@ import requests
 import os
 import asyncio
 import time
+import logging
 
 from bs4 import BeautifulSoup
-from config import TOKEN, DEVELOPER
+from config import TOKEN,DEVELOPER
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
+logging.basicConfig(level=logging.INFO)
 
 # Check have user admin in group
 async def is_admin_group(chat_id, user_id):
@@ -24,15 +26,17 @@ async def is_admin_group(chat_id, user_id):
     except Exception as e:
         print("CHECK ADMIN: %s" % repr(e))
         
-# Check have chat
-def is_have_chat(chat_id):
+# Check game in chat
+def is_game_in_chat(chat_id):
     name_file_chat = "chats/%d.txt" % chat_id
     try:
-        open(name_file_chat)
-        if os.path.getsize(name_file_chat) != 0:
+        file = open(name_file_chat)
+        text = file.read()
+        file.close()
+        if "ASSOCIATIONS" in text or "CROSSES" in text:
             return True
     except Exception as e:
-        return False
+        print("Check game: %s" % repr(e))
     return False
 
 # Create chat 
@@ -47,19 +51,35 @@ def create_chat(chat_id):
 # Take info game
 def get_params_game(chat_id):
     try:
-        if is_have_chat(chat_id):
-            name_file_chat = "chats/%d.txt" % chat_id
-            try:
-                data = open(name_file_chat)
-                info = data.read()
-                data.close()
-                return info
-            except Exception as e:
-                print("GET PARAMS GAME: %s" % repr(e))
-        else:
-            return False
+        name_file_chat = "chats/%d.txt" % chat_id
+        data = open(name_file_chat)
+        info = data.read()
+        data.close()
+        return info
     except Exception as e:
-        return False
+        print("Get params: %s" % repr(e))
+    
+# Check have user
+def is_have_user(user_id):
+    try:
+        name_file_chat = "users/%d.txt" % user_id
+        file = open(name_file_chat)
+        text = file.read()
+        file.close()
+        if len(text) == 0:
+            return True
+    except Exception as e:
+        return True
+    return False
+
+def set_user_game(user_id, game):
+    try:
+        name_file_user = "users/%d.txt" % user_id
+        file = open(name_file_user, "+w")
+        file.write(str(game))
+        file.close()
+    except Exception as e:
+        print("Set game user: %s" % repr(e))   
 
 # Type: new member
 @dp.message_handler(content_types=["new_chat_members"])
@@ -180,7 +200,7 @@ async def kick_command(message: types.Message):
     except Exception as e:
         print("KICK COMMAND: %s" % repr(e))  
 
-# Games command
+# Games
 # Command: Fanta
 @dp.message_handler(commands=['fanta'])
 async def fanta_command(message: types.Message):
@@ -199,6 +219,26 @@ async def fanta_command(message: types.Message):
     except Exception as e:
         print("FANTA COMMAND: %s" % repr(e))
 
+# Command: Mafia
+@dp.message_handler(commands=['mafia'])
+async def start_command(message: types.Message):
+    try:
+        if message.chat.id == message.from_user.id:
+            return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
+
+        if is_have_user(message.from_user.id) == False:
+            return await bot.delete_message(message.chat.id, message.message_id)
+
+        if is_game_in_chat(message.chat.id) == False:
+            buttons = [types.InlineKeyboardButton(text='Присоединиться', url="https://telegram.me/PineAppleAPP_bot?start=%d" % message.chat.id)] 
+            keyboard = types.InlineKeyboardMarkup(row_width=1)
+            keyboard.add(*buttons)
+            Check_bot = await message.answer("🍍 [%s](tg://user?id=%d) запустил игру *мафия*\n\nУчастники:\n[%s](tg://user?id=%d)" % (message.from_user.first_name,message.from_user.id,message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
+            if message.chat.id != message.from_user.id and await is_admin_group(message.chat.id, Check_bot.bot.id) == False:
+                await bot.send_message(message.chat.id, "🍍 Для полного функционала бота, рекомендуется выдать Администратора.")
+    except Exception as e:
+        print("START COMMAND: %s" % repr(e))
+
 # Command: crosses
 @dp.message_handler(commands=['crosses'])
 async def crosses_command(message: types.Message):
@@ -206,9 +246,12 @@ async def crosses_command(message: types.Message):
         if message.chat.id == message.from_user.id:
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
-        if get_params_game(message.chat.id) == False:
+        if is_have_user(message.from_user.id) == False:
+            return await bot.delete_message(message.chat.id, message.message_id)
+
+        if is_game_in_chat(message.chat.id) == False:
  
-            buttons  = [types.InlineKeyboardButton(text='Присоединится', callback_data="Присоединится")] 
+            buttons  = [types.InlineKeyboardButton(text='Присоединится', callback_data="Крестики-нолики")] 
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
             name_file = "chats/%d.txt" % message.chat.id
@@ -221,12 +264,15 @@ async def crosses_command(message: types.Message):
             data.write("CROSSES|%d|%s|0|None|CROSS|%d" % (message.from_user.id,message.from_user.first_name,get_info.message_id))
             data.close()
 
+            set_user_game(message.from_user.id, message.chat.id)
+
             await asyncio.sleep(60)
             result = get_params_game(message.chat.id).split("|")
             if int(result[3]) == 0:
                 data = open(name_file, "w+")
                 data.write("")
                 data.close()
+                set_user_game(message.from_user.id, "")
                 await bot.edit_message_text(chat_id=message.chat.id, message_id=get_info.message_id, text="🍍 *Никто не хочет играть в крестики-нолики:(*", parse_mode="Markdown",reply_markup=None)
         else:
             if await is_admin_group(message.chat.id, message.bot.id):
@@ -238,7 +284,7 @@ async def crosses_command(message: types.Message):
 @dp.message_handler(commands=['associations'])
 async def associations_command(message: types.Message):
     try:
-        if get_params_game(message.chat.id) == False:
+        if is_game_in_chat(message.chat.id) == False:
             file = open("words_for_associations.txt")
             words = file.read().split(",")
 
@@ -318,7 +364,7 @@ async def check_all_messages(message):
                 await message.answer("🤬 Попрошу не выражаться!")
                 break
 
-        if is_have_chat(message.chat.id) and message.chat.id != message.from_user.id:
+        if is_game_in_chat(message.chat.id) and message.chat.id != message.from_user.id:
             result = get_params_game(message.chat.id)
             if "ASSOCIATIONS" in str(result):
                 data = open('chats/associations/%d.txt' % message.chat.id)
@@ -359,9 +405,14 @@ async def check_all_messages(message):
     except Exception as e:
         print("READ TEXT: %s" % repr(e))
 
+@dp.chosen_inline_handler(lambda selected_inline_result: True)
+def test_chosen(selected_inline_result):
+    print(selected_inline_result)
+
 # Types: callback keyboard
 @dp.callback_query_handler(lambda callback_query: True)
 async def some_callback_handler(callback_query: types.CallbackQuery):
+    print(callback_query.data)
     try:
         code = callback_query.data
         if code == "Игры":
@@ -370,14 +421,20 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         elif code == "Помощь":
             message = "🍍 *Помощь*\n\nВ случае возникновения технической проблемы\nОбратитесь в техническую поддержку\n\n📌 Используйте: */bag [Текст]*"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
-        elif code == "Присоединится":
-            try:
+        elif code == "Крестики-нолики":
+
+            if is_have_user(callback_query.message.from_user.id) == False:
+                return bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы уже участвуете в другой игре!", show_alert=True)
+
+            if is_game_in_chat(callback_query.message.chat.id):
                 name_file = "chats/%d.txt" % callback_query.message.chat.id
                 result = get_params_game(callback_query.message.chat.id).replace("CROSSES|", "").split("|")
                 if int(result[0]) != callback_query.from_user.id and int(result[2]) == 0:
                     data = open(name_file, "w+")
                     data.write("CROSSES|%s|%s|%s|%s|CROSS|%d|1|0|0|0|0|0|0|0|0|0" % (result[0], result[1], callback_query.from_user.id, callback_query.from_user.first_name, callback_query.message.message_id))
                     data.close()
+
+                    set_user_game(callback_query.from_user.id, callback_query.message.chat.id)
 
                     TEXT_KEYBOARD = ["⏺","⏺","⏺","⏺","⏺","⏺","⏺","⏺","⏺"]
                     TEXT_CALLBACK = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -400,10 +457,10 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                         data.close()
                         keyboard = None
                         return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=keyboard)
-                else:
-                    return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы уже участвуете в другой игре!", show_alert=True)
-            except Exception as e:
-                print("CALLBACK Присоединится: %s" % repr(e))
+                
+                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы уже участвуете в другой игре!", show_alert=True)
+
+            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 *Произошла ошибка!*", parse_mode="Markdown",reply_markup=None)
         elif code == "Выбрано":
             return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Позиция уже занята!", show_alert=True)
         elif code == "Дальше":
@@ -418,7 +475,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             select_mission = random.randint(0,len(mission)) - 1
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 %s" % mission[select_mission], parse_mode="Markdown",reply_markup=keyboard)
         elif code == "1" or code == "2" or code == "3" or code == "4" or code == "5" or code == "6" or code == "7" or code == "8" or code == "9":
-            try:
+            if is_game_in_chat(callback_query.message.chat.id):
                 result = get_params_game(callback_query.message.chat.id).replace("CROSSES|", "").split("|")
                 if (int(result[0]) == callback_query.from_user.id and result[4] == "CROSS") or (int(result[2]) == callback_query.from_user.id and result[4] == "ZERO"):
                     name_file = "chats/%d.txt" % callback_query.message.chat.id
@@ -431,6 +488,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                     write_message = "EOS"
                     for a in range(9):
                         check_pos.append(int(result[a+7]))
+
                     if int(result[0]) == callback_query.from_user.id and result[4] == "CROSS":
                         message = "🍍 Игра началась!\n⌛ На ход: *60 секунд*\n\n❌ [%s](tg://user?id=%s) ходит крестиками\n⭕ [%s](tg://user?id=%s) ходит ноликами\n\nСейчас ходит: [%s](tg://user?id=%s) ⭕" % (result[1], result[0], result[3], result[1], result[3], result[1])
                         check_pos[code - 1] = 2
@@ -544,14 +602,16 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                         data.write("")
                         data.close()
                         keyboard = None
-                        return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=keyboard)
-                else:
-                    await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы не можете ходить!", show_alert=True)
-            except Exception as e:
-                print("CALLBACK KEY = %d: %s" % (code,repr(e)))
 
+                        set_user_game(int(result[0]), "")
+                        set_user_game(int(result[2]), "")
+
+                        return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=keyboard)
+                    
+                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы не можете ходить!", show_alert=True)
+            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 *Произошла ошибка!*", parse_mode="Markdown",reply_markup=None)
     except Exception as e:
-        print("CALLBACK: %s" % (repr(e)))
+        print("CALLBACK=%s: %s" % (code,repr(e)))
 
 if __name__ == '__main__':
     try:

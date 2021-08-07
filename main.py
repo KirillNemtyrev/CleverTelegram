@@ -9,11 +9,10 @@ import asyncio
 import time
 
 from bs4 import BeautifulSoup
-from config import TOKEN
+from config import TOKEN, DEVELOPER
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-DEVELOPER = 705148211
 
 # Check have user admin in group
 async def is_admin_group(chat_id, user_id):
@@ -214,7 +213,7 @@ async def crosses_command(message: types.Message):
             keyboard.add(*buttons)
             name_file = "chats/%d.txt" % message.chat.id
 
-            await bot.send_message(message.chat.id, "🍍 [%s](tg://user?id=%d) хочет поиграть в крестики-нолики" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
+            get_info = await bot.send_message(message.chat.id, "🍍 [%s](tg://user?id=%d) хочет поиграть в крестики-нолики" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
             if message.chat.id != message.from_user.id and await is_admin_group(message.chat.id, bot.id) == False:
                 await bot.send_message(message.chat.id, "🍍 Для полного функционала бота, рекомендуется выдать Администратора.")
 
@@ -418,10 +417,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 
             select_mission = random.randint(0,len(mission)) - 1
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 %s" % mission[select_mission], parse_mode="Markdown",reply_markup=keyboard)
-        
-        if code.isdigit():
-            code = int(code)
-        if code >= 1 and code <= 9:
+        elif code == "1" or code == "2" or code == "3" or code == "4" or code == "5" or code == "6" or code == "7" or code == "8" or code == "9":
             try:
                 result = get_params_game(callback_query.message.chat.id).replace("CROSSES|", "").split("|")
                 if (int(result[0]) == callback_query.from_user.id and result[4] == "CROSS") or (int(result[2]) == callback_query.from_user.id and result[4] == "ZERO"):
@@ -429,6 +425,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                     TEXT_KEYBOARD = ["⏺","⏺","⏺","⏺","⏺","⏺","⏺","⏺","⏺"]
                     TEXT_CALLBACK = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
+                    code = int(code)
                     message = "Для текста сообщения"
                     check_pos = []
                     write_message = "EOS"

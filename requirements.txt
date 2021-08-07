@@ -1,6 +1,2 @@
 aiogram
-request
-os
-asynsio
-time
 beautifulsoup4

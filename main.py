@@ -616,6 +616,6 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 if __name__ == '__main__':
     try:
         # Start bot
-        executor.start_polling(dp, skip_updates=False)
+        executor.start_polling(dp, skip_updates=True)
     except Exception as e:
         print(repr(e))

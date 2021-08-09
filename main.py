@@ -280,7 +280,7 @@ async def associations_command(message: types.Message):
             return await bot.delete_message(message.chat.id, message.message_id)
 
         if await is_admin_group(message.chat.id, bot.id) == False:
-            return await bot.send_message(message.chat.id, "🍍 Для запуска данной игры требуются права Администратора.")
+            return await message.reply("🍍 Для запуска данной игры требуются права Администратора.")
 
         file = open("info/words_for_associations.txt", encoding="utf8")
         words = file.read().split(",")

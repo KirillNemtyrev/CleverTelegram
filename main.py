@@ -9,14 +9,12 @@ import requests
 import os
 import asyncio
 import time
-import logging
 
 from bs4 import BeautifulSoup
 from config import TOKEN,DEVELOPER
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-logging.basicConfig(level=logging.INFO)
 
 # Check have user admin in group
 async def is_admin_group(chat_id, user_id):

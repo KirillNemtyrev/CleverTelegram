@@ -216,7 +216,7 @@ async def fanta_command(message: types.Message):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         keyboard.add(*buttons)
 
-        data = open("fanta_message.txt", encoding="utf8")
+        data = open("info/fanta_message.txt", encoding="utf8")
         mission = data.read().replace("\\n", "\n").split("|")
         data.close()
         select_mission = random.randint(0,len(mission)) - 1

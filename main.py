@@ -553,8 +553,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 
                 return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы не можете ходить!", show_alert=True)
             except FileNotFoundError:
-                return await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
-                return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 *Игра удалена...*", parse_mode="Markdown",reply_markup=None)
+                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Произошла ошибка!\nПопробуйте позже или создайте новую игру.", show_alert=True)
         elif code == "Выбрано":
 
             return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Позиция уже занята!", show_alert=True)

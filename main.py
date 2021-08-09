@@ -23,7 +23,7 @@ async def is_admin_group(chat_id, user_id):
             return True
         return False
     except Exception as e:
-        print("CHECK ADMIN: %s" % repr(e))
+        print(repr(e))
         
 # Check game in chat
 def is_game_in_chat(chat_id):
@@ -279,6 +279,9 @@ async def associations_command(message: types.Message):
                 return message.answer("🍍 *В чате уже идёт игра!*")
             return await bot.delete_message(message.chat.id, message.message_id)
 
+        if await is_admin_group(message.chat.id, bot.id) == False:
+            await bot.send_message(message.chat.id, "🍍 Для запуска данной игры требуются права Администратора.")
+
         file = open("info/words_for_associations.txt", encoding="utf8")
         words = file.read().split(",")
         POS_WORD = random.randint(0, len(words) - 1)
@@ -286,8 +289,6 @@ async def associations_command(message: types.Message):
         verification_dirs_chat(message.chat.id)
 
         step_first_message = await bot.send_message(message.chat.id, "🍍 Ассоциации\n\n[%s](tg://user?id=%d) запустил игру!\n\n✏ Пишите ассоциации к слову в течении 120 секунд\n⚡ Зарабатывайте очки и выигрывайте\n\nСлово для ассоциаций: *%s*" % (message.from_user.first_name,message.from_user.id,words[POS_WORD]), parse_mode="Markdown")
-        if message.chat.id != message.from_user.id and await is_admin_group(message.chat.id, bot.id) == False:
-            await bot.send_message(message.chat.id, "🍍 Для полного функционала бота, рекомендуется выдать Администратора.")
 
         parse_words(message.chat.id, words[POS_WORD])
 

@@ -2,4 +2,3 @@ requests
 aiogram
 beautifulsoup4
 lxml
-logging

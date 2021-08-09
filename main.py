@@ -113,13 +113,10 @@ async def start_command(message: types.Message):
     try:
         buttons  = [ 
         types.InlineKeyboardButton(text='Игры 📌', callback_data="Игры"),
-        types.InlineKeyboardButton(text='Помощь ◀', callback_data="Помощь")
-        ] 
+        types.InlineKeyboardButton(text='Помощь ◀', callback_data="Помощь")] 
         keyboard = types.InlineKeyboardMarkup(row_width=2)
         keyboard.add(*buttons)
-        Check_bot = await message.answer("Приветствую - я Ананасыч 🍍\nМногоспособный бот для веселья!", reply_markup=keyboard)
-        if message.chat.id != message.from_user.id and await is_admin_group(message.chat.id, Check_bot.bot.id) == False:
-            await bot.send_message(message.chat.id, "🍍 Для полного функционала бота, рекомендуется выдать Администратора.")
+        await message.answer("Приветствую - я Ананасыч 🍍\nМногоспособный бот для веселья!", reply_markup=keyboard)
     except Exception as e:
         print(repr(e))
 
@@ -233,8 +230,6 @@ async def crosses_command(message: types.Message):
         verification_dirs_chat(message.chat.id)
 
         info = await message.reply("🍍 [%s](tg://user?id=%d) хочет поиграть в крестики-нолики" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
-        if message.chat.id != message.from_user.id and await is_admin_group(message.chat.id, bot.id) == False:
-            await bot.send_message(message.chat.id, "🍍 Для полного функционала бота, рекомендуется выдать Администратора.")
 
         await asyncio.sleep(20)
         file = "/chats/" + str(message.chat.id) + "/" + str(info.message_id)

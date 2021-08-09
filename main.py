@@ -9,7 +9,6 @@ import requests
 import os
 import asyncio
 import time
-
 from bs4 import BeautifulSoup
 from config import TOKEN,DEVELOPER
 
@@ -121,8 +120,6 @@ async def start_command(message: types.Message):
         Check_bot = await message.answer("Приветствую - я Ананасыч 🍍\nМногоспособный бот для веселья!", reply_markup=keyboard)
         if message.chat.id != message.from_user.id and await is_admin_group(message.chat.id, Check_bot.bot.id) == False:
             await bot.send_message(message.chat.id, "🍍 Для полного функционала бота, рекомендуется выдать Администратора.")
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e))
 
@@ -139,8 +136,6 @@ async def mute_command(message: types.Message):
         text = message.text.replace(text[0], "")
         message = "⚠ *Сообщение о баге*\n\nОтправитель: [%s](tg://user?id=%d)\nЧат ID: %d\nUser ID: %d\n\nСообщение:\n%s" % (message.from_user.first_name,message.from_user.id,message.chat.id,message.from_user.id,text)
         await bot.send_message(DEVELOPER, message, parse_mode="Markdown")
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e)) 
 
@@ -169,8 +164,6 @@ async def mute_command(message: types.Message):
 
         await message.answer("🍍 [%s](tg://user?id=%d) *не сможет писать в чат 30 минут*" % (message.reply_to_message.from_user.first_name,message.reply_to_message.from_user.id), parse_mode="Markdown")
         await bot.restrict_chat_member(message.chat.id, message.reply_to_message.from_user.id,until_date=int(time.time()) + 60*30,can_send_messages=False)
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e))  
 
@@ -199,8 +192,6 @@ async def kick_command(message: types.Message):
         await bot.delete_message(message.chat.id, message.message_id)
         await message.answer("🍍 [%s](tg://user?id=%d) *кикнул(-а)* [%s](tg://user?id=%d)" % (message.from_user.first_name,message.from_user.id,message.reply_to_message.from_user.first_name,message.reply_to_message.from_user.id), parse_mode="Markdown")
         await bot.kick_chat_member(message.chat.id, message.reply_to_message.from_user.id)
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e)) 
 
@@ -220,8 +211,6 @@ async def fanta_command(message: types.Message):
         select_mission = random.randint(0,len(mission)) - 1
 
         await bot.send_message(message.chat.id, "🍍 %s" % mission[select_mission], parse_mode="Markdown", reply_markup=keyboard)
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e)) 
 
@@ -255,8 +244,6 @@ async def crosses_command(message: types.Message):
         except FileNotFoundError:
             return await bot.edit_message_text(chat_id=message.chat.id, message_id=info.message_id, text="🍍 *Никто не хочет играть:(*", parse_mode="Markdown",reply_markup=None)
         
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e)) 
 
@@ -352,8 +339,6 @@ async def associations_command(message: types.Message):
 
         return await bot.send_message(message.chat.id, game_message, parse_mode="Markdown")   
 
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e)) 
 
@@ -444,8 +429,6 @@ async def check_all_messages(message):
                     player.write(str(int(len(message.text) / 2)))
                     player.close()
                 
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e)) 
 
@@ -586,8 +569,6 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 
             select_mission = random.randint(0,len(mission)) - 1
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 %s" % mission[select_mission], parse_mode="Markdown",reply_markup=keyboard)
-    except BotKicked:
-        return True
     except Exception as e:
         print(repr(e)) 
 

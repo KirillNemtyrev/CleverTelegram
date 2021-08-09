@@ -564,7 +564,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
 
-            data = open("fanta_message.txt", encoding="utf8")
+            data = open("info/fanta_message.txt", encoding="utf8")
             mission = data.read().replace("\\n", "\n").split("|")
             data.close()
 

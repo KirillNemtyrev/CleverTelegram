@@ -874,54 +874,54 @@ async def leave_command(message: types.Message):
             with open(os.getcwd() + "/users/" + str(message.from_user.id) + ".txt") as player:
                 chat = int(player.read())
 
-            os.remove(os.getcwd() + "/users/" + str(message.from_user.id) + ".txt")
+                os.remove(os.getcwd() + "/users/" + str(message.from_user.id) + ".txt")
 
-            with open(os.getcwd() + "/chats/" + str(chat) + "/info.txt") as game:
-                game_result = game.read().split("|")
+                with open(os.getcwd() + "/chats/" + str(chat) + "/info.txt") as game:
+                    game_result = game.read().split("|")
 
-            if "MAFIA" == game_result[0]:
-                if "REGISTER" == game_result[1]:
-                    os.remove(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + str(message.from_user.id) + ".txt")
+                if "MAFIA" == game_result[0]:
+                    if "REGISTER" == game_result[1]:
+                        os.remove(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + str(message.from_user.id) + ".txt")
 
-                    game_message = "🍍 *Мафия*\n\nУчастники:\n"
-                    players = os.listdir(os.getcwd() + "/chats/" + str(chat) + "/mafia")
-                    count = 0
-                    for temp in players:
-                        try:
-                            index = int(temp.replace(".txt", ""))
-                            info = await bot.get_chat_member(chat, index)
+                        game_message = "🍍 *Мафия*\n\nУчастники:\n"
+                        players = os.listdir(os.getcwd() + "/chats/" + str(chat) + "/mafia")
+                        count = 0
+                        for temp in players:
+                            try:
+                                index = int(temp.replace(".txt", ""))
+                                info = await bot.get_chat_member(chat, index)
 
-                            game_message += "[%s](tg://user?id=%d)\n" % (info.user.first_name, index)
-                            count += 1
-                        except:
-                            os.remove(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + temp)
+                                game_message += "[%s](tg://user?id=%d)\n" % (info.user.first_name, index)
+                                count += 1
+                            except:
+                                os.remove(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + temp)
 
-                    buttons  = [types.InlineKeyboardButton(text='Присоединиться', callback_data="Мафия")] 
-                    keyboard = types.InlineKeyboardMarkup(row_width=1)
-                    keyboard.add(*buttons)
+                        buttons  = [types.InlineKeyboardButton(text='Присоединиться', callback_data="Мафия")] 
+                        keyboard = types.InlineKeyboardMarkup(row_width=1)
+                        keyboard.add(*buttons)
 
-                    game_message += "\nИтого *%d* чел." % count
-                    if count == 0:
-                        game_message = "🍍 *Мафия*\n\nИдёт набор участников"
-                    await bot.edit_message_text(chat_id=chat, message_id=int(game_result[2]), text=game_message, parse_mode="Markdown",reply_markup=keyboard)
-                else:
-                    with open(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + str(message.from_user.id) + ".txt") as player:
-                        get = player.read().split("|")
+                        game_message += "\nИтого *%d* чел." % count
+                        if count == 0:
+                            game_message = "🍍 *Мафия*\n\nИдёт набор участников"
+                        await bot.edit_message_text(chat_id=chat, message_id=int(game_result[2]), text=game_message, parse_mode="Markdown",reply_markup=keyboard)
+                    else:
+                        with open(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + str(message.from_user.id) + ".txt") as player:
+                            get = player.read().split("|")
 
-                    with open(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + str(message.from_user.id) + ".txt", "+w") as killed:
-                        killed.write("%s|0|0|%s" % (get[0], get[3]))
+                            with open(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + str(message.from_user.id) + ".txt", "+w") as killed:
+                                killed.write("%s|0|0|%s" % (get[0], get[3]))
 
-                    message_to_die = [
-                    "💀 [%s](tg://user?id=%d) повесился в комнате..",
-                    "💀 [%s](tg://user?id=%d) спрыгнул(-а) с восьмого этажа..",
-                    "💀 [%s](tg://user?id=%d) застрелился..",
-                    "💀 [%s](tg://user?id=%d) выпил таблетки для суицида.."]
+                            message_to_die = [
+                            "💀 [%s](tg://user?id=%d) повесился в комнате..",
+                            "💀 [%s](tg://user?id=%d) спрыгнул(-а) с восьмого этажа..",
+                            "💀 [%s](tg://user?id=%d) застрелился..",
+                            "💀 [%s](tg://user?id=%d) выпил таблетки для суицида.."]
 
-                    await bot.send_message(chat, choice(message_to_die) % (get[3],message.from_user.id), parse_mode="Markdown")
-                    await progress_to_win_mafia(chat)
-                
-                await bot.send_message(message.from_user.id, "🍍 Вы покинули игру")
-                return await bot.delete_message(message.chat.id, message.message_id)
+                            await bot.send_message(chat, choice(message_to_die) % (get[3],message.from_user.id), parse_mode="Markdown")
+                            await progress_to_win_mafia(chat)
+                    
+                    await bot.send_message(message.from_user.id, "🍍 Вы покинули игру")
+                    return await bot.delete_message(message.chat.id, message.message_id)
         except:
             return await bot.delete_message(message.chat.id, message.message_id)
     except Exception as e:
@@ -973,8 +973,8 @@ async def check_all_messages(message):
                 try:
                     with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" ) as player:
                         score = int(player.read())
-                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
-                        player.write(str(score + int(len(message.text) / 2)))
+                        with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                            player.write(str(score + int(len(message.text) / 2)))
                 except FileNotFoundError:
                     with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
                         player.write(str(score + int(len(message.text) / 2)))
@@ -1002,8 +1002,8 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                 with open(os.getcwd() + "/users/" + str(callback_query.from_user.id) + ".txt") as player:
                     info = player.read()
 
-                if info == str(callback_query.message.chat.id):
-                    return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы уже учавствуете в этой игре!", show_alert=True)
+                    if info == str(callback_query.message.chat.id):
+                        return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы уже учавствуете в этой игре!", show_alert=True)
                 
                 return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы уже учавствуете в другой игре!", show_alert=True)
             except FileNotFoundError:
@@ -1059,9 +1059,9 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                 await asyncio.sleep(60)
                 with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt") as game:
                     game_split = game.read().split("|")
-                if int(game_split[5]) == 1:
-                    message = "🍍 *Игра закончилась!*\n\n%s | %s | %s\n%s | %s | %s\n%s | %s | %s\n\nУчастники:\n❌ [%s](tg://user?id=%d) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%d)" % (TEXT_KEYBOARD[0],TEXT_KEYBOARD[1],TEXT_KEYBOARD[2],TEXT_KEYBOARD[3],TEXT_KEYBOARD[4],TEXT_KEYBOARD[5],TEXT_KEYBOARD[6],TEXT_KEYBOARD[7],TEXT_KEYBOARD[8],callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.from_user.first_name, callback_query.from_user.id)
-                    return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
+                    if int(game_split[5]) == 1:
+                        message = "🍍 *Игра закончилась!*\n\n%s | %s | %s\n%s | %s | %s\n%s | %s | %s\n\nУчастники:\n❌ [%s](tg://user?id=%d) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%d)" % (TEXT_KEYBOARD[0],TEXT_KEYBOARD[1],TEXT_KEYBOARD[2],TEXT_KEYBOARD[3],TEXT_KEYBOARD[4],TEXT_KEYBOARD[5],TEXT_KEYBOARD[6],TEXT_KEYBOARD[7],TEXT_KEYBOARD[8],callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.from_user.first_name, callback_query.from_user.id)
+                        return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
             except FileNotFoundError:
                     return False
 

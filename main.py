@@ -321,9 +321,7 @@ async def mafia_command(message: types.Message):
         step_first_message = await message.answer("🍍 *Мафия*\n\nИдёт набор участников", parse_mode="Markdown", reply_markup=keyboard)
         message.message_id = step_first_message.message_id
 
-        file = os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"
-
-        with open(file, "+w") as game:
+        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
             game.write("MAFIA|REGISTER|%d" % message.message_id)
 
         await asyncio.sleep(60)
@@ -339,15 +337,10 @@ async def mafia_command(message: types.Message):
         await bot.delete_message(message.chat.id, step_third_message.message_id)
 
         players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia")
-        if not players:
-            os.remove(file)
-            return await bot.edit_message_text(chat_id=message.chat.id, message_id=step_first_message.message_id, text="🍍 *Мафия*\n\nНедостаточно игроков для начала игры.", parse_mode="Markdown",reply_markup=None)
-
-        if players and len(players) <= 1:
-            for temp in players:
-                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia/" + temp)
-                os.remove(os.getcwd() + "/users/" + temp)
-            return await bot.edit_message_text(chat_id=message.chat.id, message_id=step_first_message.message_id, text="🍍 *Мафия*\n\nНедостаточно игроков для начала игры.", parse_mode="Markdown",reply_markup=None)
+        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia/" + temp)
+        for temp in players:
+            os.remove(os.getcwd() + "/users/" + temp)
+        return await bot.edit_message_text(chat_id=message.chat.id, message_id=step_first_message.message_id, text="🍍 *Мафия*\n\nНедостаточно игроков для начала игры.", parse_mode="Markdown",reply_markup=None)
 
         count_mafia = 0
         count_police = 0

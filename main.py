@@ -788,12 +788,15 @@ def destroy_mafia(chat_id):
 @dp.message_handler(commands=['associations'])
 async def associations_command(message: types.Message):
     try:
+        if message.chat.id == message.from_user.id:
+            return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
+
         if is_game_in_chat(message.chat.id):
             if await is_admin_group(message.chat.id, message.bot.id) == False:
                 return message.answer("🍍 *В чате уже идёт игра!*")
             return await bot.delete_message(message.chat.id, message.message_id)
 
-        if await is_admin_group(message.chat.id, bot.id) == False and message.chat.id != message.from_user.id:
+        if await is_admin_group(message.chat.id, bot.id) == False:
             return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
 
         with open("info/words_for_associations.txt", encoding="utf8") as game:
@@ -1018,7 +1021,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры*\n\n/crosses - Игра крестики-нолики\n📌 Играть можно только в группе\n\n/associations - Игра в ассоциации\n📌 Бот пишет слово, а ты придумываешь к нему слово-ассоциацию, чем длиннее слово, тем больше очков\n\n/mafia - Игра мафия\n📌 Игра запускается только в группе\n\n/fanta - Игра для 'культурной' посиделки 🔞"
+            message = "🍍 *Игры*\n\n/crosses - Игра крестики-нолики\n📌 Играть можно только в группе\n\n/associations - Игра в ассоциации\n📌 Бот пишет слово, а ты придумываешь к нему слово-ассоциацию, чем длиннее слово, тем больше очков\nИгра запускается только в группе\n\n/mafia - Игра мафия\n📌 Игра запускается только в группе\n\n/fanta - Игра для 'культурной' посиделки 🔞"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":

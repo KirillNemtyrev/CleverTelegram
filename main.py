@@ -285,6 +285,9 @@ def progress_to_win_crosses(check_pos):
 @dp.message_handler(commands=['mafia'])
 async def mafia_command(message: types.Message):
     try:
+        if message.chat.id == message.from_user.id:
+            return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
+
         if is_game_in_chat(message.chat.id):
             if await is_admin_group(message.chat.id, message.bot.id) == False:
                 return message.answer("🍍 *В чате уже идёт игра!*")
@@ -775,7 +778,7 @@ async def associations_command(message: types.Message):
                 return message.answer("🍍 *В чате уже идёт игра!*")
             return await bot.delete_message(message.chat.id, message.message_id)
 
-        if await is_admin_group(message.chat.id, bot.id) == False:
+        if await is_admin_group(message.chat.id, bot.id) == False and message.chat.id != message.from_user.id:
             return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
 
         with open("info/words_for_associations.txt", encoding="utf8") as game:

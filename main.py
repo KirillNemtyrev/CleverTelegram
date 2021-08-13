@@ -1152,7 +1152,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                         keyboard = None
 
                     if keyboard is None:
-                        os.remove(file)
+                        os.remove(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt")
 
                     await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=keyboard)
                     if keyboard is not None:

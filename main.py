@@ -934,12 +934,12 @@ async def check_all_messages(message):
         with open('info/bad_words.txt', encoding="utf8") as bad_words:
             text = bad_words.read().split(" ")
 
-        for temp in text:
-            if temp in message.text.lower():
-                if await is_admin_group(message.chat.id, message.bot.id):
-                    return await bot.delete_message(message.chat.id, message.message_id)
-                return await message.reply("🤬 Попрошу не выражаться!")
-                break
+            for temp in text:
+                if temp in message.text.lower():
+                    if await is_admin_group(message.chat.id, message.bot.id):
+                        return await bot.delete_message(message.chat.id, message.message_id)
+                    return await message.reply("🤬 Попрошу не выражаться!")
+                    break
 
         if is_game_in_chat(message.chat.id) == False:
             return True
@@ -971,13 +971,14 @@ async def check_all_messages(message):
 
                 await message.reply("🍍 *Ассоциации*\n\nСлово *%s* засчитано\n⚡ *+%d очков*" % (message.text, len(message.text) / 2), parse_mode="Markdown")  
                 try:
-                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" ) as player:
+                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt") as player:
                         score = int(player.read())
-                        with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
-                            player.write(str(score + int(len(message.text) / 2)))
-                except FileNotFoundError:
+
                     with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
                         player.write(str(score + int(len(message.text) / 2)))
+                except FileNotFoundError:
+                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                        player.write(str(int(len(message.text) / 2)))
                 
     except Exception as e:
         print(repr(e)) 
@@ -1059,9 +1060,10 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                 await asyncio.sleep(60)
                 with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt") as game:
                     game_split = game.read().split("|")
-                    if int(game_split[5]) == 1:
-                        message = "🍍 *Игра закончилась!*\n\n%s | %s | %s\n%s | %s | %s\n%s | %s | %s\n\nУчастники:\n❌ [%s](tg://user?id=%d) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%d)" % (TEXT_KEYBOARD[0],TEXT_KEYBOARD[1],TEXT_KEYBOARD[2],TEXT_KEYBOARD[3],TEXT_KEYBOARD[4],TEXT_KEYBOARD[5],TEXT_KEYBOARD[6],TEXT_KEYBOARD[7],TEXT_KEYBOARD[8],callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.from_user.first_name, callback_query.from_user.id)
-                        return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
+
+                if int(game_split[5]) == 1:
+                    message = "🍍 *Игра закончилась!*\n\n%s | %s | %s\n%s | %s | %s\n%s | %s | %s\n\nУчастники:\n❌ [%s](tg://user?id=%d) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%d)" % (TEXT_KEYBOARD[0],TEXT_KEYBOARD[1],TEXT_KEYBOARD[2],TEXT_KEYBOARD[3],TEXT_KEYBOARD[4],TEXT_KEYBOARD[5],TEXT_KEYBOARD[6],TEXT_KEYBOARD[7],TEXT_KEYBOARD[8],callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.from_user.first_name, callback_query.from_user.id)
+                    return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
             except FileNotFoundError:
                     return False
 
@@ -1127,6 +1129,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                             await asyncio.sleep(60)
                             with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt") as game:
                                 game_info_next = game.read().split("|")
+                                
                             if int(game_info_next[5]) == int(game_info[5]) + 1:
                                 if game_info_next[4] == "CROSS":
                                     game_message = "🍍 *Игра закончилась!*\n\n%s | %s | %s\n%s | %s | %s\n%s | %s | %s\n\nУчастники:\n❌ [%s](tg://user?id=%s) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%s)" % (keyboard_text[0],keyboard_text[1],keyboard_text[2],keyboard_text[3],keyboard_text[4],keyboard_text[5],keyboard_text[6],keyboard_text[7],keyboard_text[8],game_info[1], game_info[0], game_info[3], game_info[2])

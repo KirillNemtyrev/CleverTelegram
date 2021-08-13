@@ -337,9 +337,10 @@ async def mafia_command(message: types.Message):
         await bot.delete_message(message.chat.id, step_third_message.message_id)
 
         players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia")
-        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia/" + temp)
+        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
         for temp in players:
             os.remove(os.getcwd() + "/users/" + temp)
+            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia/" + temp)
         return await bot.edit_message_text(chat_id=message.chat.id, message_id=step_first_message.message_id, text="🍍 *Мафия*\n\nНедостаточно игроков для начала игры.", parse_mode="Markdown",reply_markup=None)
 
         count_mafia = 0

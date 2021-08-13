@@ -824,13 +824,13 @@ async def associations_command(message: types.Message):
             with open("chats/" + str(message.chat.id) + "/associations/" + item) as player:
                 score = int(player.read())
 
-            os.remove("chats/" + str(message.chat.id) + "/associations/" + item)
+                os.remove("chats/" + str(message.chat.id) + "/associations/" + item)
 
-            index = int(item.replace(".txt", ""))
-            info = await bot.get_chat_member(message.chat.id, index)
+                index = int(item.replace(".txt", ""))
+                info = await bot.get_chat_member(message.chat.id, index)
 
-            game_message += "%d. [%s](tg://user?id=%d) - ⚡ %d очков.\n" % (count, info.user.first_name, index, score)
-            count += 1
+                game_message += "%d. [%s](tg://user?id=%d) - ⚡ %d очков.\n" % (count, info.user.first_name, index, score)
+                count += 1
 
         return await bot.send_message(message.chat.id, game_message, parse_mode="Markdown")   
 
@@ -973,7 +973,6 @@ async def check_all_messages(message):
                 try:
                     with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" ) as player:
                         score = int(player.read())
-
                     with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
                         player.write(str(score + int(len(message.text) / 2)))
                 except FileNotFoundError:

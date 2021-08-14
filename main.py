@@ -10,11 +10,15 @@ import os
 import asyncio
 import time
 
+from pyowm import OWM
+from pyowm.utils.config import get_default_config
+
 from bs4 import BeautifulSoup
-from config import TOKEN,DEVELOPER
+from config import TOKEN,DEVELOPER,API_KEY
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
+owm = OWM(API_KEY)
 
 # Check have user admin in group
 async def is_admin_group(chat_id, user_id):
@@ -956,6 +960,21 @@ async def leave_from_mafia(chat, user):
 @dp.message_handler(content_types=["text"])
 async def check_all_messages(message):
     try:
+        try:
+            mgr = owm.weather_manager()
+            observation = mgr.weather_at_place( message.text )
+            status = observation.weather 
+            temp = status.temperature('celsius')["temp"]
+            if temp <= 10:
+                recommend = "На улице прохладно.."
+            elif temp <= 20:
+                recommend = "На улице тепло."
+            else:
+                recommend = "На улице жара."
+            return await message.answer("🍍 *%s*\n\n🌡 Температура: %d ℃\n%s" % (message.text, temp, recommend), parse_mode="Markdown")
+        except Exception as e:
+            pass
+
         with open('info/bad_words.txt', encoding="utf8") as bad_words:
             text = bad_words.read().split(" ")
 

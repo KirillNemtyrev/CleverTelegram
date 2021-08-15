@@ -326,7 +326,7 @@ async def crosses_command(message: types.Message):
             city.close()
 
         await bot.delete_message(message.chat.id, message.message_id)
-        step = await message.reply("🍍 *Города*\nИгра города запущена!\n\n📌 Бот пишет букву на которую нужно написать город\nСледующий ход будет на последнию букву города\nСоответственно игрок пропустит следующий ход\n\nНапишите город на букву: *%s*" % first_letter, parse_mode="Markdown")        
+        step = await message.answer("🍍 *Города*\nИгра города запущена!\n\n📌 Бот пишет букву на которую нужно написать город\nСледующий ход будет на последнию букву города\nСоответственно игрок пропустит следующий ход\n\nНапишите город на букву: *%s*" % first_letter, parse_mode="Markdown")        
         await asyncio.sleep(60)
         try:
             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
@@ -1339,6 +1339,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         print(repr(e)) 
 
 async def start_bot():
+    await asyncio.sleep(60)
     try:
         chats = os.listdir(os.getcwd() + "/chats")
         for temp in chats:

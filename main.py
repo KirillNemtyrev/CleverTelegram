@@ -300,6 +300,44 @@ def progress_to_win_crosses(check_pos):
         return 4
     return False
 
+# Command: cities
+@dp.message_handler(commands=['cities'])
+async def crosses_command(message: types.Message):
+    try:
+        if message.chat.id == message.from_user.id:
+            return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
+
+        if is_game_in_chat(message.chat.id):
+            if await is_admin_group(message.chat.id, message.bot.id) == False:
+                return message.answer("🍍 *В чате уже идёт игра!*")
+            await bot.delete_message(message.chat.id, message.message_id)
+
+        letters = ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Э", "Ю", "Я"]
+        first_letter = choice(letters)
+
+        verification_dirs_chat(message.chat.id)
+        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
+            game.write("CITIES|%s|0" % first_letter)
+
+        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
+            city.close()
+
+        await bot.delete_message(message.chat.id, message.message_id)
+        step = await message.reply("🍍 *Города*\n\n[%s](tg://user?id=%d) запустил игру *Города*\n\n📌 Бот пишет букву на которую нужно написать город\nСледующий ход будет на последнию букву города\nСоответственно игрок пропустит следующий ход\n\nНапишите город на букву: *%s*" % (message.from_user.first_name,message.from_user.id, first_letter), parse_mode="Markdown")        
+        await asyncio.sleep(60)
+        try:
+            with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                record = game.read().split("|")
+
+            if record[2] == "0":
+                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
+                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
+                return await bot.delete_message(message.chat.id, step.message_id)
+        except FileNotFoundError:
+            return True
+    except Exception as e:
+        print(repr(e))    
+
 # Command: mafia
 @dp.message_handler(commands=['mafia'])
 async def mafia_command(message: types.Message):
@@ -960,21 +998,6 @@ async def leave_from_mafia(chat, user):
 @dp.message_handler(content_types=["text"])
 async def check_all_messages(message):
     try:
-        try:
-            mgr = owm.weather_manager()
-            observation = mgr.weather_at_place( message.text )
-            status = observation.weather 
-            temp = status.temperature('celsius')["temp"]
-            if temp <= 10:
-                recommend = "На улице прохладно.."
-            elif temp <= 20:
-                recommend = "На улице тепло."
-            else:
-                recommend = "На улице жара."
-            return await message.answer("🍍 *%s*\n\n🌡 Температура: %d ℃\n%s" % (message.text, temp, recommend), parse_mode="Markdown")
-        except Exception as e:
-            pass
-
         with open('info/bad_words.txt', encoding="utf8") as bad_words:
             text = bad_words.read().split(" ")
 
@@ -986,10 +1009,70 @@ async def check_all_messages(message):
                     break
 
         if is_game_in_chat(message.chat.id) == False:
-            return True
+            try:
+                mgr = owm.weather_manager()
+                observation = mgr.weather_at_place(message.text)
+                status = observation.weather 
+                temp = status.temperature('celsius')["temp"]
+                if temp <= 10:
+                    recommend = "На улице прохладно.."
+                elif temp <= 20:
+                    recommend = "На улице тепло."
+                else:
+                    recommend = "На улице жара."
+                return await message.answer("🍍 *%s*\n\n🌡 Температура: %d ℃\n%s" % (message.text, temp, recommend), parse_mode="Markdown")
+            except Exception as e:
+                pass
 
-        with open("chats/" + str(message.chat.id) + "/info.txt") as game:
+        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
             game_text = game.read()
+
+        if "CITIES" in game_text:
+            try:
+                mgr = owm.weather_manager()
+                observation = mgr.weather_at_place(message.text)
+                status = observation.weather 
+                fist_letter = message.text[:1].upper()
+                last_letter = message.text.replace(message.text[:-1], "").upper()
+
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                    records = game.read().split("|")
+
+                if int(records[2]) == message.from_user.id or fist_letter != records[1]:
+                    return True
+
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt") as city:
+                    cities = city.read()
+
+                result = cities.split(" ")
+                for temp in result:
+                    if temp.lower() == message.text.lower():
+                        await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
+
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
+                    city.write(cities + message.text + " ")
+
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
+                    game.write("CITIES|%s|%d" % (last_letter, message.from_user.id))
+
+                await message.reply("🍍 *Города*\nГород *%s* засчитано\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
+                await asyncio.sleep(60)
+                try:
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                        record = game.read().split("|")
+
+                    if int(record[2]) == message.from_user.id:
+                        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
+                        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
+                        try:
+                            info = await bot.get_chat_member(message.chat.id, message.from_user.id)
+                            return await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
+                        except Exception as e:
+                            return await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
+                except FileNotFoundError:
+                    return True
+            except Exception as e:
+                return True
 
         if "Night" in game_text:
 
@@ -1034,7 +1117,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры*\n\n/crosses - Игра крестики-нолики\n📌 Играть можно только в группе\n\n/associations - Игра в ассоциации\n📌 Бот пишет слово, а ты придумываешь к нему слово-ассоциацию, чем длиннее слово, тем больше очков\nИгра запускается только в группе\n\n/mafia - Игра мафия\n📌 Игра запускается только в группе\n\n/fanta - Игра для 'культурной' посиделки 🔞"
+            message = "🍍 *Игры*\n\n📌 Игры в группе:\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n📌 Бот пишет слово, а ты придумываешь к нему слово-ассоциацию, чем длиннее слово, тем больше очков\n\n/mafia - Игра мафия\n/cities - Игра в Города\n\n📌 Остальное:\n/fanta - Игра для 'культурной' посиделки 🔞"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":
@@ -1252,7 +1335,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
     except Exception as e:
         print(repr(e)) 
 
-if __name__ == '__main__':
+async def start_bot():
     try:
         if not os.path.isdir("chats"):
             os.mkdir("chats")
@@ -1260,6 +1343,40 @@ if __name__ == '__main__':
         if not os.path.isdir("users"):
             os.mkdir("users")
 
-        executor.start_polling(dp, skip_updates=False)
+        chats = os.listdir(os.getcwd() + "/chats")
+        for temp in chats:
+            try:
+                file = os.getcwd() + "/chats/" + temp + "/info.txt"
+                with open(os.getcwd() + "/chats/" + temp + "/info.txt") as game:
+                    result = game.read()
+
+                if "MAFIA" in result:
+                    players = os.listdir(os.getcwd() + "/chats/" + temp + "/mafia")
+                    await bot.send_message(int(temp), "🍍 *Мафия*\nПерезапуск, игра была удалена..", parse_mode="Markdown")
+                    for item in players:
+                        os.remove(os.getcwd() + "/chats/" + temp + "/mafia/" + item)
+                        os.remove(os.getcwd() + "/users/" + item)
+                    return True
+
+                if "ASSOCIATIONS" in result:
+                    players = os.listdir(os.getcwd() + "/chats/" + temp + "/associations")
+                    await bot.send_message(int(temp), "🍍 *Ассоциации*\nПерезапуск, игра была удалена..", parse_mode="Markdown")
+                    for item in players:
+                        os.remove(os.getcwd() + "/chats/" + temp + "/associations/" + item)
+
+                if "CITIES" in result:
+                    await bot.send_message(int(temp), "🍍 *Города*\nПерезапуск, игра была удалена..", parse_mode="Markdown")
+                    os.remove(os.getcwd() + "/chats/" + temp + "/cities.txt")
+
+                os.remove(os.getcwd() + "/chats/" + temp + "/info.txt")
+            except FileNotFoundError:
+                continue
+
     except Exception as e:
         print(repr(e))
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start_bot())
+    executor.start_polling(dp, skip_updates=False)
+    loop.close()

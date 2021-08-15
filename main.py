@@ -1348,6 +1348,7 @@ async def start_bot():
                     result = game.read()
 
                 if "MAFIA" in result:
+                    await bot.send_message(int(temp), "🍍 *Мафия*\nПерезапуск, игра удалена..", parse_mode="Markdown")
                     players = os.listdir(os.getcwd() + "/chats/" + temp + "/mafia")
                     for item in players:
                         os.remove(os.getcwd() + "/chats/" + temp + "/mafia/" + item)
@@ -1355,11 +1356,13 @@ async def start_bot():
                     return True
 
                 if "ASSOCIATIONS" in result:
+                    await bot.send_message(int(temp), "🍍 *Ассоциации*\nПерезапуск, игра удалена..", parse_mode="Markdown")
                     players = os.listdir(os.getcwd() + "/chats/" + temp + "/associations")
                     for item in players:
                         os.remove(os.getcwd() + "/chats/" + temp + "/associations/" + item)
 
                 if "CITIES" in result:
+                    await bot.send_message(int(temp), "🍍 *Города*\nПерезапуск, игра удалена..", parse_mode="Markdown")
                     os.remove(os.getcwd() + "/chats/" + temp + "/cities.txt")
 
                 os.remove(os.getcwd() + "/chats/" + temp + "/info.txt")
@@ -1376,4 +1379,7 @@ if __name__ == "__main__":
     if not os.path.isdir("users"):
         os.mkdir("users")
 
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start_bot())
     executor.start_polling(dp, skip_updates=False)
+    loop.close()

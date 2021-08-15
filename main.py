@@ -312,6 +312,9 @@ async def crosses_command(message: types.Message):
                 return message.answer("🍍 *В чате уже идёт игра!*")
             await bot.delete_message(message.chat.id, message.message_id)
 
+        if await is_admin_group(message.chat.id, bot.id) == False:
+            return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
+
         letters = ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Э", "Ю", "Я"]
         first_letter = choice(letters)
 
@@ -323,7 +326,7 @@ async def crosses_command(message: types.Message):
             city.close()
 
         await bot.delete_message(message.chat.id, message.message_id)
-        step = await message.reply("🍍 *Города*\n\n[%s](tg://user?id=%d) запустил игру *Города*\n\n📌 Бот пишет букву на которую нужно написать город\nСледующий ход будет на последнию букву города\nСоответственно игрок пропустит следующий ход\n\nНапишите город на букву: *%s*" % (message.from_user.first_name,message.from_user.id, first_letter), parse_mode="Markdown")        
+        step = await message.reply("🍍 *Города*\nИгра города запущена!\n\n📌 Бот пишет букву на которую нужно написать город\nСледующий ход будет на последнию букву города\nСоответственно игрок пропустит следующий ход\n\nНапишите город на букву: *%s*" % first_letter, parse_mode="Markdown")        
         await asyncio.sleep(60)
         try:
             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:

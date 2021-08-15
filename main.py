@@ -1357,7 +1357,6 @@ if __name__ == "__main__":
                 for item in players:
                     os.remove(os.getcwd() + "/chats/" + temp + "/mafia/" + item)
                     os.remove(os.getcwd() + "/users/" + item)
-                return True
 
             if "ASSOCIATIONS" in result:
                 players = os.listdir(os.getcwd() + "/chats/" + temp + "/associations")

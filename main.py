@@ -1337,12 +1337,6 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 
 async def start_bot():
     try:
-        if not os.path.isdir("chats"):
-            os.mkdir("chats")
-
-        if not os.path.isdir("users"):
-            os.mkdir("users")
-
         chats = os.listdir(os.getcwd() + "/chats")
         for temp in chats:
             try:
@@ -1352,7 +1346,6 @@ async def start_bot():
 
                 if "MAFIA" in result:
                     players = os.listdir(os.getcwd() + "/chats/" + temp + "/mafia")
-                    await bot.send_message(int(temp), "🍍 *Мафия*\nПерезапуск, игра была удалена..", parse_mode="Markdown")
                     for item in players:
                         os.remove(os.getcwd() + "/chats/" + temp + "/mafia/" + item)
                         os.remove(os.getcwd() + "/users/" + item)
@@ -1360,12 +1353,10 @@ async def start_bot():
 
                 if "ASSOCIATIONS" in result:
                     players = os.listdir(os.getcwd() + "/chats/" + temp + "/associations")
-                    await bot.send_message(int(temp), "🍍 *Ассоциации*\nПерезапуск, игра была удалена..", parse_mode="Markdown")
                     for item in players:
                         os.remove(os.getcwd() + "/chats/" + temp + "/associations/" + item)
 
                 if "CITIES" in result:
-                    await bot.send_message(int(temp), "🍍 *Города*\nПерезапуск, игра была удалена..", parse_mode="Markdown")
                     os.remove(os.getcwd() + "/chats/" + temp + "/cities.txt")
 
                 os.remove(os.getcwd() + "/chats/" + temp + "/info.txt")
@@ -1376,7 +1367,10 @@ async def start_bot():
         print(repr(e))
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(start_bot())
+    if not os.path.isdir("chats"):
+            os.mkdir("chats")
+
+    if not os.path.isdir("users"):
+        os.mkdir("users")
+
     executor.start_polling(dp, skip_updates=False)
-    loop.close()

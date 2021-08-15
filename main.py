@@ -1339,7 +1339,6 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         print(repr(e)) 
 
 async def start_bot():
-    await asyncio.sleep(60)
     try:
         chats = os.listdir(os.getcwd() + "/chats")
         for temp in chats:

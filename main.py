@@ -20,6 +20,8 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 owm = OWM(API_KEY)
 
+letters = ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Э", "Ю", "Я"]
+
 # Check have user admin in group
 async def is_admin_group(chat_id, user_id):
     try:
@@ -315,7 +317,6 @@ async def crosses_command(message: types.Message):
         if await is_admin_group(message.chat.id, bot.id) == False:
             return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
 
-        letters = ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Э", "Ю", "Я"]
         first_letter = choice(letters)
 
         verification_dirs_chat(message.chat.id)
@@ -386,7 +387,7 @@ async def mafia_command(message: types.Message):
         for temp in players:
             os.remove(os.getcwd() + "/users/" + temp)
             os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia/" + temp)
-        return await bot.edit_message_text(chat_id=message.chat.id, message_id=step_first_message.message_id, text="🍍 *Мафия*\n\nНедостаточно игроков для начала игры.", parse_mode="Markdown",reply_markup=None)
+            return await bot.edit_message_text(chat_id=message.chat.id, message_id=step_first_message.message_id, text="🍍 *Мафия*\n\nНедостаточно игроков для начала игры.", parse_mode="Markdown",reply_markup=None)
 
         count_mafia = 0
         count_police = 0
@@ -990,7 +991,7 @@ async def leave_from_mafia(chat, user):
                 "💀 [%s](tg://user?id=%d) застрелился..",
                 "💀 [%s](tg://user?id=%d) выпил таблетки для суицида.."]
 
-                await bot.send_message(chat, choice(message_to_die) % (get[3],message.from_user.id), parse_mode="Markdown")
+                await bot.send_message(chat, choice(message_to_die) % (get[3],user), parse_mode="Markdown")
                 await progress_to_win_mafia(chat)
         
         await bot.send_message(user, "🍍 Вы покинули игру")
@@ -1035,13 +1036,15 @@ async def check_all_messages(message):
                 mgr = owm.weather_manager()
                 observation = mgr.weather_at_place(message.text)
                 status = observation.weather 
-                fist_letter = message.text[:1].upper()
+                first_letter = message.text[:1].upper()
                 last_letter = message.text.replace(message.text[:-1], "").upper()
+                if last_letter not in letters:
+                    last_letter = message.text.replace(message.text[:len(message.text) - 2], "")
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                     records = game.read().split("|")
 
-                if int(records[2]) == message.from_user.id or fist_letter != records[1]:
+                if int(records[2]) == message.from_user.id or first_letter != records[1]:
                     return True
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt") as city:
@@ -1050,7 +1053,8 @@ async def check_all_messages(message):
                 result = cities.split(" ")
                 for temp in result:
                     if temp.lower() == message.text.lower():
-                        await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
+                        return await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
+                        break
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
                     city.write(cities + message.text + " ")
@@ -1192,7 +1196,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                     game_split = game.read().split("|")
 
                 if int(game_split[5]) == 1:
-                    message = "🍍 *Игра закончилась!*\n\n%s | %s | %s\n%s | %s | %s\n%s | %s | %s\n\nУчастники:\n❌ [%s](tg://user?id=%d) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%d)" % (TEXT_KEYBOARD[0],TEXT_KEYBOARD[1],TEXT_KEYBOARD[2],TEXT_KEYBOARD[3],TEXT_KEYBOARD[4],TEXT_KEYBOARD[5],TEXT_KEYBOARD[6],TEXT_KEYBOARD[7],TEXT_KEYBOARD[8],callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.from_user.first_name, callback_query.from_user.id)
+                    message = "🍍 *Игра закончилась!*\n\nУчастники:\n❌ [%s](tg://user?id=%d) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%d)" % (callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.from_user.first_name, callback_query.from_user.id)
                     return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
             except FileNotFoundError:
                     return False
@@ -1266,7 +1270,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                                 else:
                                     game_message = "🍍 *Игра закончилась!*\n\n%s | %s | %s\n%s | %s | %s\n%s | %s | %s\n\nУчастники:\n❌ [%s](tg://user?id=%s)\n⭕ [%s](tg://user?id=%s) - Не сделал(-а) ход" % (keyboard_text[0],keyboard_text[1],keyboard_text[2],keyboard_text[3],keyboard_text[4],keyboard_text[5],keyboard_text[6],keyboard_text[7],keyboard_text[8],game_info[1], game_info[0], game_info[3], game_info[2])
                                 keyboard = None
-                                await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=keyboard)
+                                await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=keyboard)
                         except FileNotFoundError:
                             return False
 
@@ -1324,13 +1328,13 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                                 return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🤵 Вы выбрали _%s_" % result[3] , parse_mode="Markdown",reply_markup=None)
                             elif int(info[0]) == 1:
                                 roles = ["*Мафия*", "*Коммисар*", "*Медик*", "*Снежана*", "*Мирный*"]
-                                await bot.send_message(int(temp.replace(".txt", "")), "👮‍♂️ Кто-то занялся вашим личным досье.")
-                                return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="👮‍♂️ Вы проверили _%s_\nЕго роль: %s" % (result[3] , role[int(result[0])]) , parse_mode="Markdown",reply_markup=None)
+                                await bot.send_message(int(index), "👮‍♂️ Кто-то занялся вашим личным досье.")
+                                return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="👮‍♂️ Вы проверили _%s_\nЕго роль: %s" % (result[3] , roles[int(result[0])]) , parse_mode="Markdown",reply_markup=None)
                             elif int(info[0]) == 2:
-                                await bot.send_message(int(temp.replace(".txt", "")), "👨‍⚕️ Доктор плотно занялся вашим здоровьем.")
+                                await bot.send_message(int(index), "👨‍⚕️ Доктор плотно занялся вашим здоровьем.")
                                 return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="👨‍⚕️ Вы вылечили _%s_" % (result[3]) , parse_mode="Markdown",reply_markup=None)
                             elif int(info[0]) == 3:
-                                await bot.send_message(int(temp.replace(".txt", "")), "🤷 К вам зашла Снежана")
+                                await bot.send_message(int(index), "🤷 К вам зашла Снежана")
                                 return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🤷 Вы провели ночь с _%s_" % (result[3]) , parse_mode="Markdown",reply_markup=None)    
                     return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Видимо этот игрок без сознания..", show_alert=True)
                 except:

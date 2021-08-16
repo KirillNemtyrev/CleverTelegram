@@ -1382,4 +1382,4 @@ if __name__ == "__main__":
         except Exception as e:
             continue
 
-    executor.start_polling(dp, skip_updates=False)
+    executor.start_polling(dp, skip_updates=True)

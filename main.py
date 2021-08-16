@@ -1043,9 +1043,11 @@ async def check_all_messages(message):
                 for temp in letters:
                     if temp == last_letter:
                         FIND = True
+                        print("FIND")
                         break
 
                 if not FIND:
+                    print("NOT FINDED")
                     last_letter = message.text.replace(message.text[:len(message.text) - 2], "").replace(last_letter, "").upper()
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:

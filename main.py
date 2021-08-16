@@ -321,7 +321,7 @@ async def crosses_command(message: types.Message):
 
         verification_dirs_chat(message.chat.id)
         with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
-            game.write("CITIES|%s|0" % first_letter)
+            game.write("CITIES|%s|0|0" % first_letter)
 
         with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
             city.close()
@@ -1068,7 +1068,7 @@ async def check_all_messages(message):
                     city.write(cities + message.text + " ")
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
-                    game.write("CITIES|%s|%d" % (last_letter, message.from_user.id))
+                    game.write("CITIES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
 
                 await message.reply("🍍 *Города*\nГород *%s* засчитано\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
                 await asyncio.sleep(60)
@@ -1076,7 +1076,7 @@ async def check_all_messages(message):
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                         record = game.read().split("|")
 
-                    if int(record[2]) == message.from_user.id:
+                    if int(record[3]) == int(records[3]) + 1:
                         os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
                         os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
                         try:

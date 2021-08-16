@@ -1038,7 +1038,14 @@ async def check_all_messages(message):
                 status = observation.weather 
                 first_letter = message.text[:1].upper()
                 last_letter = message.text.replace(message.text[:-1], "").upper()
-                if last_letter not in letters:
+
+                FIND = False
+                for temp in letters:
+                    if temp == last_letter:
+                        FIND = True
+                        break
+
+                if not FIND:
                     last_letter = message.text.replace(message.text[:len(message.text) - 2], "").replace(last_letter, "").upper()
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:

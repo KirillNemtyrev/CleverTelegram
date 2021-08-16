@@ -1076,7 +1076,7 @@ async def check_all_messages(message):
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                         record = game.read().split("|")
 
-                    if int(record[3]) == int(records[3]) + 1:
+                    if int(record[2]) == message.from_user.id and int(record[3]) == int(records[3]) + 1:
                         os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
                         os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
                         try:

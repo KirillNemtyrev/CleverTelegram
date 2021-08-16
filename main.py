@@ -1039,7 +1039,7 @@ async def check_all_messages(message):
                 first_letter = message.text[:1].upper()
                 last_letter = message.text.replace(message.text[:-1], "").upper()
                 if last_letter not in letters:
-                    last_letter = message.text.replace(message.text[:len(message.text) - 2], "").replace(last_letter, "")
+                    last_letter = message.text.replace(message.text[:len(message.text) - 2], "").replace(last_letter, "").upper()
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                     records = game.read().split("|")

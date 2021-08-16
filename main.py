@@ -1131,7 +1131,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры*\n\n📌 Игры в группе:\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n📌 Бот пишет слово, а ты придумываешь к нему слово-ассоциацию, чем длиннее слово, тем больше очков\n\n/mafia - Игра мафия\n/cities - Игра в Города\n\n📌 Остальное:\n/fanta - Игра для 'культурной' посиделки 🔞"
+            message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/mafia - Игра мафия\n/cities - Игра в Города\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":

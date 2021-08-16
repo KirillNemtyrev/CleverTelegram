@@ -1035,20 +1035,19 @@ async def check_all_messages(message):
             try:
                 mgr = owm.weather_manager()
                 observation = mgr.weather_at_place(message.text)
-                status = observation.weather 
-                first_letter = message.text[:1].upper()
-                last_letter = message.text.replace(message.text[:-1], "").upper()
+                status = observation.weather
+                city = message.text.upper() 
+                first_letter = city[:1]
+                last_letter = city.replace(city[:-1], "")
 
                 FIND = False
                 for temp in letters:
                     if temp == last_letter:
                         FIND = True
-                        print("FIND")
                         break
 
                 if not FIND:
-                    print("NOT FINDED")
-                    last_letter = message.text.replace(message.text[:len(message.text) - 2], "").replace(last_letter, "").upper()
+                    last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                     records = game.read().split("|")

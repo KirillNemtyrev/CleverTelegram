@@ -12,8 +12,6 @@ import time
 
 from pyowm import OWM
 from pyowm.utils.config import get_default_config
-from translate import Translator
-from langdetect import detect
 
 from bs4 import BeautifulSoup
 from config import TOKEN,DEVELOPER,API_KEY
@@ -1006,119 +1004,107 @@ async def leave_from_mafia(chat, user):
 @dp.message_handler(content_types=["text"])
 async def check_all_messages(message):
     try:
-        if message.chat.id == message.from_user.id:
-            buttons = [types.InlineKeyboardButton(text='Русский', callback_data="ru"),types.InlineKeyboardButton(text='Английский', callback_data="en"),
-            types.InlineKeyboardButton(text='Казахский', callback_data="kk"),types.InlineKeyboardButton(text='Арабский', callback_data="ar"),
-            types.InlineKeyboardButton(text='Немецкий', callback_data="de"),types.InlineKeyboardButton(text='Французский', callback_data="fr"),
-            types.InlineKeyboardButton(text='Испанский', callback_data="es"),types.InlineKeyboardButton(text='Китайский', callback_data="zh-cn")] 
-            keyboard = types.InlineKeyboardMarkup(row_width=2)
-            keyboard.add(*buttons)
-            return await message.reply("🍍 *Перевод*\nНа какой язык перевести?", parse_mode="Markdown", reply_markup=keyboard)
+        with open(os.getcwd() + "/info/bad_words.txt", encoding="utf8") as bad_words:
+            text = bad_words.read().split(" ")
 
-        try:
-            with open(os.getcwd() + "/info/bad_words.txt", encoding="utf8") as bad_words:
-                text = bad_words.read().split(" ")
+        for temp in text:
+            if temp in message.text.lower():
+                if await is_admin_group(message.chat.id, message.bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return await message.reply("🤬 Попрошу не выражаться!")
 
-            for temp in text:
-                if temp in message.text.lower():
-                    if await is_admin_group(message.chat.id, message.bot.id):
-                        return await bot.delete_message(message.chat.id, message.message_id)
-                    return await message.reply("🤬 Попрошу не выражаться!")
+        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+            game_text = game.read()
 
-            with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
-                game_text = game.read()
+        if "CITIES" in game_text:
+            try:
+                mgr = owm.weather_manager()
+                observation = mgr.weather_at_place(message.text)
+                status = observation.weather
+                city = message.text.upper() 
+                first_letter = city[:1]
+                last_letter = city.replace(city[:-1], "")
 
-            if "CITIES" in game_text:
-                try:
-                    mgr = owm.weather_manager()
-                    observation = mgr.weather_at_place(message.text)
-                    status = observation.weather
-                    city = message.text.upper() 
-                    first_letter = city[:1]
-                    last_letter = city.replace(city[:-1], "")
-
-                    FIND = False
-                    for temp in letters:
-                        if temp == last_letter:
-                            FIND = True
-                            break
-
-                    if not FIND:
-                        last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
-
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
-                        records = game.read().split("|")
-
-                    if int(records[2]) == message.from_user.id or first_letter != records[1]:
-                        return True
-
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt") as city:
-                        cities = city.read()
-
-                    result = cities.split(" ")
-                    for temp in result:
-                        if temp.lower() == message.text.lower():
-                            return await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
-
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
-                        city.write(cities + message.text + " ")
-
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
-                        game.write("CITIES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
-
-                    await message.reply("🍍 *Города*\nГород *%s* засчитано\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
-                    await asyncio.sleep(60)
-                    try:
-                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
-                            record = game.read().split("|")
-
-                        if int(record[2]) == message.from_user.id and int(record[3]) == int(records[3]) + 1:
-                            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
-                            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
-                            try:
-                                info = await bot.get_chat_member(message.chat.id, message.from_user.id)
-                                return await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
-                            except Exception as e:
-                                return await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
-                    except FileNotFoundError:
-                        return True
-                except Exception as e:
-                    return True
-
-            if "Night" in game_text:
-
-                await bot.delete_message(message.chat.id, message.message_id)
-
-            if "ASSOCIATIONS" in game_text:
-
-                with open("chats/" + str(message.chat.id) + "/parse.txt") as parse:
-                    text = parse.read()
-
-                text_split = text.split(",")
                 FIND = False
-
-                for item in text_split:
-                    if message.text.lower() == item:
+                for temp in letters:
+                    if temp == last_letter:
                         FIND = True
                         break
 
-                if FIND is True:
+                if not FIND:
+                    last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
 
-                    with open("chats/" + str(message.chat.id) + "/parse.txt", "+w") as parse:
-                        parse.write(text.replace(message.text.lower() + ",", ""))
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                    records = game.read().split("|")
 
-                    await message.reply("🍍 *Ассоциации*\n\nСлово *%s* засчитано\n⚡ *+%d очков*" % (message.text, len(message.text) / 2), parse_mode="Markdown")  
-                    try:
-                        with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt") as player:
-                            score = int(player.read())
+                if int(records[2]) == message.from_user.id or first_letter != records[1]:
+                    return True
 
-                        with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
-                            player.write(str(score + int(len(message.text) / 2)))
-                    except FileNotFoundError:
-                        with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
-                            player.write(str(int(len(message.text) / 2)))
-        except FileNotFoundError:
-            return True 
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt") as city:
+                    cities = city.read()
+
+                result = cities.split(" ")
+                for temp in result:
+                    if temp.lower() == message.text.lower():
+                        return await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
+
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
+                    city.write(cities + message.text + " ")
+
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
+                    game.write("CITIES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
+
+                await message.reply("🍍 *Города*\nГород *%s* засчитано\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
+                await asyncio.sleep(60)
+                try:
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                        record = game.read().split("|")
+
+                    if int(record[2]) == message.from_user.id and int(record[3]) == int(records[3]) + 1:
+                        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
+                        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
+                        try:
+                            info = await bot.get_chat_member(message.chat.id, message.from_user.id)
+                            return await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
+                        except Exception as e:
+                            return await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
+                except FileNotFoundError:
+                    return True
+            except Exception as e:
+                return True
+
+        if "Night" in game_text:
+
+            await bot.delete_message(message.chat.id, message.message_id)
+
+        if "ASSOCIATIONS" in game_text:
+
+            with open("chats/" + str(message.chat.id) + "/parse.txt") as parse:
+                text = parse.read()
+
+            text_split = text.split(",")
+            FIND = False
+
+            for item in text_split:
+                if message.text.lower() == item:
+                    FIND = True
+                    break
+
+            if FIND is True:
+
+                with open("chats/" + str(message.chat.id) + "/parse.txt", "+w") as parse:
+                    parse.write(text.replace(message.text.lower() + ",", ""))
+
+                await message.reply("🍍 *Ассоциации*\n\nСлово *%s* засчитано\n⚡ *+%d очков*" % (message.text, len(message.text) / 2), parse_mode="Markdown")  
+                try:
+                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt") as player:
+                        score = int(player.read())
+
+                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                        player.write(str(score + int(len(message.text) / 2)))
+                except FileNotFoundError:
+                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                        player.write(str(int(len(message.text) / 2)))
     except Exception as e:
         print(repr(e)) 
 
@@ -1127,14 +1113,7 @@ async def check_all_messages(message):
 async def some_callback_handler(callback_query: types.CallbackQuery):
     try:
         code = callback_query.data
-        if code == "ru" or code == "en" or code == "kk" or code == "ar" or code == "de" or code == "fr" or code == "es" or code == "zh-cn":
-            
-            lang = detect(callback_query.message.reply_to_message.md_text)
-            translator= Translator(from_lang=lang, to_lang=code)
-            translation = translator.translate(callback_query.message.reply_to_message.md_text)
-            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 Перевод:\n\n" + translation,reply_markup=None)
-        
-        elif code == "Игры":
+        if code == "Игры":
 
             message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/mafia - Игра мафия\n/cities - Игра в Города\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)

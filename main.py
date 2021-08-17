@@ -38,9 +38,8 @@ def is_game_in_chat(chat_id):
         with open("chats/" + str(chat_id) + "/" + "info.txt") as game:
             game.close()
         return True
-    except FileNotFoundError:
+    except Exception as e:
         return False
-    return False
 
 # Check dirs 
 def verification_dirs_chat(chat_id):
@@ -60,6 +59,7 @@ def verification_dirs_chat(chat_id):
         path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "mafia")
         if not os.path.exists(path):
             os.mkdir(path)
+
     except Exception as e:
         print(repr(e)) 
 
@@ -112,18 +112,15 @@ async def new_chat_members_delete(message):
             await bot.delete_message(message.chat.id, message.message_id)
             
         if message.new_chat_members[0].id == bot.id:
+            verification_dirs_chat(message.chat.id)
             # KeyBoard
-            buttons  = [ 
-            types.InlineKeyboardButton(text='Игры 📌', callback_data="Игры"),
-            types.InlineKeyboardButton(text='Помощь ◀', callback_data="Помощь")
-            ] 
+            buttons  = [types.InlineKeyboardButton(text='Игры 📌', callback_data="Игры"),types.InlineKeyboardButton(text='Помощь ◀', callback_data="Помощь")] 
             keyboard = types.InlineKeyboardMarkup(row_width=2)
             keyboard.add(*buttons)
-            await message.answer("🍍 Приветствую Вас, господа!\nМеня зовут - *Ананасыч*\nЯ многофункциональный бот\n\nС моей помощью можно:\n💾 Играть в различные игры\n👮 Следить за порядком\n🔔 Администрировать чат\n\n_для полного функционала рекомендую выдать мне права администратора_", parse_mode="Markdown", reply_markup=keyboard)
-        
-            verification_dirs_chat(message.chat.id)
-        else:
-            return await message.answer("🍍[%s](tg://user?id=%d), *добро пожаловать в %s*" % (message.new_chat_members[0].first_name, message.new_chat_members[0].id,message.chat.full_name), parse_mode="Markdown")
+
+            return await message.answer("🍍 Приветствую Вас, господа!\nМеня зовут - *Ананасыч*\nЯ многофункциональный бот\n\nС моей помощью можно:\n💾 Играть в различные игры\n👮 Следить за порядком\n🔔 Администрировать чат\n\n_для полного функционала рекомендую выдать мне права администратора_", parse_mode="Markdown", reply_markup=keyboard)
+
+        return await message.answer("🍍[%s](tg://user?id=%d), *добро пожаловать в %s*" % (message.new_chat_members[0].first_name, message.new_chat_members[0].id,message.chat.full_name), parse_mode="Markdown")
     except Exception as e:
         print(repr(e))
 
@@ -136,6 +133,7 @@ async def new_chat_members_delete(message):
 
         if await is_admin_group(message.chat.id, message.bot.id):
             await bot.delete_message(message.chat.id, message.message_id)
+
         await message.answer("🍍 [%s](tg://user?id=%d) покинул(-а) *%s*" % (message.left_chat_member.first_name, message.left_chat_member.id,message.chat.full_name), parse_mode="Markdown")
         try: 
             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
@@ -159,12 +157,10 @@ async def new_chat_members_delete(message):
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
     try:
-        buttons  = [ 
-        types.InlineKeyboardButton(text='Игры 📌', callback_data="Игры"),
-        types.InlineKeyboardButton(text='Помощь ◀', callback_data="Помощь")] 
+        buttons  = [types.InlineKeyboardButton(text='Игры 📌', callback_data="Игры"),types.InlineKeyboardButton(text='Помощь ◀', callback_data="Помощь")] 
         keyboard = types.InlineKeyboardMarkup(row_width=2)
         keyboard.add(*buttons)
-        await message.answer("Приветствую - я Ананасыч 🍍\nМногоспособный бот для веселья!", reply_markup=keyboard)
+        return await message.answer("Приветствую - я Ананасыч 🍍\nМногоспособный бот для веселья!", reply_markup=keyboard)
     except Exception as e:
         print(repr(e))
 
@@ -254,7 +250,26 @@ async def fanta_command(message: types.Message):
             mission = fanta.read().replace("\\n", "\n").split("|")
 
         select_mission = random.randint(0,len(mission)) - 1
-        await bot.send_message(message.chat.id, "🍍 %s" % mission[select_mission], parse_mode="Markdown", reply_markup=keyboard)
+        await message.reply("🍍 %s" % mission[select_mission], parse_mode="Markdown", reply_markup=keyboard)
+    except Exception as e:
+        print(repr(e)) 
+
+# Command: hand
+@dp.message_handler(commands=['hand'])
+async def hand_command(message: types.Message):
+    try:
+        if message.chat.id == message.from_user.id:
+            return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
+
+        if is_game_in_chat(message.chat.id):
+            if await is_admin_group(message.chat.id, message.bot.id) == False:
+                return message.answer("🍍 *В чате уже идёт игра!*")
+            await bot.delete_message(message.chat.id, message.message_id)
+
+        buttons  = [types.InlineKeyboardButton(text='Принять 👍', callback_data="Рука")] 
+        keyboard = types.InlineKeyboardMarkup(row_width=1)
+        keyboard.add(*buttons)
+        return message.reply("🍍 [%s](tg://user?id=%d) кидает вызов в камень-ножницы-бумага" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
     except Exception as e:
         print(repr(e)) 
 
@@ -270,13 +285,13 @@ async def crosses_command(message: types.Message):
                 return message.answer("🍍 *В чате уже идёт игра!*")
             await bot.delete_message(message.chat.id, message.message_id)
 
-        buttons  = [types.InlineKeyboardButton(text='Присоединиться', callback_data="Крестики-нолики")] 
+        buttons  = [types.InlineKeyboardButton(text='Присоединиться ⚔', callback_data="Крестики-нолики")] 
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         keyboard.add(*buttons)
 
         verification_dirs_chat(message.chat.id)
 
-        await message.reply("🍍 [%s](tg://user?id=%d) хочет поиграть в крестики-нолики" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)        
+        return await message.reply("🍍 [%s](tg://user?id=%d) хочет поиграть в крестики-нолики" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)        
     except Exception as e:
         print(repr(e)) 
 
@@ -288,7 +303,6 @@ def progress_to_win_crosses(check_pos):
         return check_pos[3]
     elif check_pos[6] != 0 and check_pos[6] == check_pos[7] and check_pos[7] == check_pos[8]:
         return check_pos[6]
-        DESTROY_MATCH = True
     elif check_pos[0] != 0 and check_pos[0] == check_pos[3] and check_pos[3] == check_pos[6]:
         return check_pos[0]
     elif check_pos[1] != 0 and check_pos[1] == check_pos[4] and check_pos[4] == check_pos[7]:
@@ -318,9 +332,9 @@ async def crosses_command(message: types.Message):
         if await is_admin_group(message.chat.id, bot.id) == False:
             return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
 
+        verification_dirs_chat(message.chat.id)
         first_letter = choice(letters)
 
-        verification_dirs_chat(message.chat.id)
         with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
             game.write("CITIES|%s|0|0" % first_letter)
 
@@ -328,6 +342,7 @@ async def crosses_command(message: types.Message):
             city.close()
 
         await bot.delete_message(message.chat.id, message.message_id)
+
         step = await message.answer("🍍 *Города*\nИгра города запущена!\n\n📌 Бот пишет букву на которую нужно написать город\nСледующий ход будет на последнию букву города\nСоответственно игрок пропустит следующий ход\n\nНапишите город на букву: *%s*" % first_letter, parse_mode="Markdown")        
         await asyncio.sleep(60)
         try:
@@ -358,7 +373,7 @@ async def mafia_command(message: types.Message):
         if await is_admin_group(message.chat.id, bot.id) == False:
             return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
 
-        buttons = [types.InlineKeyboardButton(text='Присоединиться', callback_data="Мафия")] 
+        buttons = [types.InlineKeyboardButton(text='Присоединиться 🤵', callback_data="Мафия")] 
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         keyboard.add(*buttons)
 
@@ -972,7 +987,7 @@ async def leave_from_mafia(chat, user):
                     os.remove(os.getcwd() + "/chats/" + str(chat) + "/mafia/" + temp)
                     os.remove(os.getcwd() + "/users/" + temp)
 
-            buttons  = [types.InlineKeyboardButton(text='Присоединиться', callback_data="Мафия")] 
+            buttons  = [types.InlineKeyboardButton(text='Присоединиться 🤵', callback_data="Мафия")] 
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
 
@@ -1115,7 +1130,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/mafia - Игра мафия\n/cities - Игра в Города\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞"
+            message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/mafia - Игра мафия\n/cities - Игра в Города\n/hand - Камень-Ножницы-Бумага\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":
@@ -1157,12 +1172,32 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                     except:
                         os.remove(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/mafia/" + temp)
             
-            buttons  = [types.InlineKeyboardButton(text='Присоединиться', callback_data="Мафия")] 
+            buttons  = [types.InlineKeyboardButton(text='Присоединиться 🤵', callback_data="Мафия")] 
             keyboard = types.InlineKeyboardMarkup(row_width=1)
             keyboard.add(*buttons)
 
             game_message += "\nИтого *%d* чел." % count
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=keyboard)
+
+        elif code == "Рука":
+
+            if callback_query.from_user.id == callback_query.message.reply_to_message.from_user.id:
+                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Это ваш вызов...", show_alert=True)
+
+            hand = ["Камень 🗿", "Ножницы ✂", "Бумага 🧻"]
+            game_message = "🍍 *Камень-Ножницы-Бумага*\n\n[%s](tg://user?id=%d) - %s\n[%s](tg://user?id=%d) - %s\n\n" % (callback_query.from_user.first_name, callback_query.from_user.id, callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
+            
+            player = random.randint(0,len(hand)) - 1
+            enemy = random.randint(0,len(hand)) - 1
+
+            if player == enemy:
+                game_message += "*Ничья!*"
+            elif player == 0 and enemy == 1 or player == 2 and enemy == 0 or player == 2 and enemy == 0 or player == 1 and enemy == 2:
+                game_message += "[%s](tg://user?id=%d) - 👑" % (callback_query.from_user.first_name, callback_query.from_user.id)
+            elif player == 1 and enemy == 0 or player == 0 and enemy == 2 or player == 0 and enemy == 2 or player == 2 and enemy == 1:
+                game_message += "[%s](tg://user?id=%d) - 👑" % (callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
+            
+            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=None)
 
         elif code == "Крестики-нолики":
 

@@ -269,7 +269,7 @@ async def hand_command(message: types.Message):
         buttons  = [types.InlineKeyboardButton(text='Принять 👍', callback_data="Рука")] 
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         keyboard.add(*buttons)
-        return message.reply("🍍 [%s](tg://user?id=%d) кидает вызов в камень-ножницы-бумага" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
+        return await message.reply("🍍 [%s](tg://user?id=%d) кидает вызов в камень-ножницы-бумага" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
     except Exception as e:
         print(repr(e)) 
 
@@ -1181,21 +1181,22 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 
         elif code == "Рука":
 
-            if callback_query.from_user.id == callback_query.message.reply_to_message.from_user.id:
-                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Это ваш вызов...", show_alert=True)
+            #if callback_query.from_user.id == callback_query.message.reply_to_message.from_user.id:
+                #return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Это ваш вызов...", show_alert=True)
 
             hand = ["Камень 🗿", "Ножницы ✂", "Бумага 🧻"]
-            game_message = "🍍 *Камень-Ножницы-Бумага*\n\n[%s](tg://user?id=%d) - %s\n[%s](tg://user?id=%d) - %s\n\n" % (callback_query.from_user.first_name, callback_query.from_user.id, callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
-            
-            player = random.randint(0,len(hand)) - 1
-            enemy = random.randint(0,len(hand)) - 1
+
+            player = random.randint(0,len(hand) - 1)
+            enemy = random.randint(0,len(hand) - 1)
+
+            game_message = "🍍 *Камень-Ножницы-Бумага*\n\n[%s](tg://user?id=%d) - %s\n[%s](tg://user?id=%d) - %s\n\n" % (callback_query.from_user.first_name, callback_query.from_user.id, hand[player], callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, hand[enemy])
 
             if player == enemy:
                 game_message += "*Ничья!*"
-            elif player == 0 and enemy == 1 or player == 2 and enemy == 0 or player == 2 and enemy == 0 or player == 1 and enemy == 2:
-                game_message += "[%s](tg://user?id=%d) - 👑" % (callback_query.from_user.first_name, callback_query.from_user.id)
-            elif player == 1 and enemy == 0 or player == 0 and enemy == 2 or player == 0 and enemy == 2 or player == 2 and enemy == 1:
-                game_message += "[%s](tg://user?id=%d) - 👑" % (callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
+            elif player == 0 and enemy == 1 or player == 0 and enemy == 2 or player == 1 and enemy == 2:
+                game_message += "*Победитель:*\n\t[%s](tg://user?id=%d) - 👑" % (callback_query.from_user.first_name, callback_query.from_user.id)
+            elif player == 0 and enemy == 1 or player == 2 and enemy == 0 or player == 2 and enemy == 1:
+                game_message += "*Победитель:*\n\t[%s](tg://user?id=%d) - 👑" % (callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
             
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=None)
 

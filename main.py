@@ -60,6 +60,10 @@ def verification_dirs_chat(chat_id):
         if not os.path.exists(path):
             os.mkdir(path)
 
+        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "hand")
+        if not os.path.exists(path):
+            os.mkdir(path)
+
     except Exception as e:
         print(repr(e)) 
 
@@ -93,6 +97,14 @@ def remove_dirs_chat(chat_id):
                     for temp in files:
                         os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/mafia/" + temp)
                 os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/mafia")
+
+            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "hand")
+            if os.path.exists(path):
+                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/hand")
+                if files:
+                    for temp in files:
+                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/hand/" + temp)
+                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/hand")
 
             files = os.listdir(os.getcwd() + "/chats/" + str(chat_id))
             if files:
@@ -262,13 +274,16 @@ async def hand_command(message: types.Message):
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
         if is_game_in_chat(message.chat.id):
-            if await is_admin_group(message.chat.id, message.bot.id) == False:
+            if not await is_admin_group(message.chat.id, message.bot.id):
                 return message.answer("🍍 *В чате уже идёт игра!*")
             await bot.delete_message(message.chat.id, message.message_id)
+
+        verification_dirs_chat(message.chat.id)
 
         buttons  = [types.InlineKeyboardButton(text='Принять 👍', callback_data="Рука")] 
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         keyboard.add(*buttons)
+
         return await message.reply("🍍 [%s](tg://user?id=%d) кидает вызов в камень-ножницы-бумага" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
     except Exception as e:
         print(repr(e)) 
@@ -1028,98 +1043,101 @@ async def check_all_messages(message):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🤬 Попрошу не выражаться!")
 
-        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
-            game_text = game.read()
+        try:
+            with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                game_text = game.read()
 
-        if "CITIES" in game_text:
-            try:
-                mgr = owm.weather_manager()
-                observation = mgr.weather_at_place(message.text)
-                status = observation.weather
-                city = message.text.upper() 
-                first_letter = city[:1]
-                last_letter = city.replace(city[:-1], "")
+            if "CITIES" in game_text:
+                try:
+                    mgr = owm.weather_manager()
+                    observation = mgr.weather_at_place(message.text)
+                    status = observation.weather
+                    city = message.text.upper() 
+                    first_letter = city[:1]
+                    last_letter = city.replace(city[:-1], "")
 
+                    FIND = False
+                    for temp in letters:
+                        if temp == last_letter:
+                            FIND = True
+                            break
+
+                    if not FIND:
+                        last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
+
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                        records = game.read().split("|")
+
+                    if int(records[2]) == message.from_user.id or first_letter != records[1]:
+                        return True
+
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt") as city:
+                        cities = city.read()
+
+                    result = cities.split(" ")
+                    for temp in result:
+                        if temp.lower() == message.text.lower():
+                            return await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
+
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
+                        city.write(cities + message.text + " ")
+
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
+                        game.write("CITIES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
+
+                    await message.reply("🍍 *Города*\nГород *%s* засчитано\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
+                    await asyncio.sleep(60)
+                    try:
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                            record = game.read().split("|")
+
+                        if int(record[2]) == message.from_user.id and int(record[3]) == int(records[3]) + 1:
+                            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
+                            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
+                            try:
+                                info = await bot.get_chat_member(message.chat.id, message.from_user.id)
+                                return await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
+                            except Exception as e:
+                                return await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
+                    except FileNotFoundError:
+                        return True
+                except Exception as e:
+                    return True
+
+            if "Night" in game_text:
+
+                await bot.delete_message(message.chat.id, message.message_id)
+
+            if "ASSOCIATIONS" in game_text:
+
+                with open("chats/" + str(message.chat.id) + "/parse.txt") as parse:
+                    text = parse.read()
+
+                text_split = text.split(",")
                 FIND = False
-                for temp in letters:
-                    if temp == last_letter:
+
+                for item in text_split:
+                    if message.text.lower() == item:
                         FIND = True
                         break
 
-                if not FIND:
-                    last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
+                if FIND is True:
 
-                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
-                    records = game.read().split("|")
+                    with open("chats/" + str(message.chat.id) + "/parse.txt", "+w") as parse:
+                        parse.write(text.replace(message.text.lower() + ",", ""))
 
-                if int(records[2]) == message.from_user.id or first_letter != records[1]:
-                    return True
+                    await message.reply("🍍 *Ассоциации*\n\nСлово *%s* засчитано\n⚡ *+%d очков*" % (message.text, len(message.text) / 2), parse_mode="Markdown")  
+                    try:
+                        with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt") as player:
+                            score = int(player.read())
 
-                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt") as city:
-                    cities = city.read()
-
-                result = cities.split(" ")
-                for temp in result:
-                    if temp.lower() == message.text.lower():
-                        return await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
-
-                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
-                    city.write(cities + message.text + " ")
-
-                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
-                    game.write("CITIES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
-
-                await message.reply("🍍 *Города*\nГород *%s* засчитано\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
-                await asyncio.sleep(60)
-                try:
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
-                        record = game.read().split("|")
-
-                    if int(record[2]) == message.from_user.id and int(record[3]) == int(records[3]) + 1:
-                        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
-                        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
-                        try:
-                            info = await bot.get_chat_member(message.chat.id, message.from_user.id)
-                            return await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
-                        except Exception as e:
-                            return await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
-                except FileNotFoundError:
-                    return True
-            except Exception as e:
-                return True
-
-        if "Night" in game_text:
-
-            await bot.delete_message(message.chat.id, message.message_id)
-
-        if "ASSOCIATIONS" in game_text:
-
-            with open("chats/" + str(message.chat.id) + "/parse.txt") as parse:
-                text = parse.read()
-
-            text_split = text.split(",")
-            FIND = False
-
-            for item in text_split:
-                if message.text.lower() == item:
-                    FIND = True
-                    break
-
-            if FIND is True:
-
-                with open("chats/" + str(message.chat.id) + "/parse.txt", "+w") as parse:
-                    parse.write(text.replace(message.text.lower() + ",", ""))
-
-                await message.reply("🍍 *Ассоциации*\n\nСлово *%s* засчитано\n⚡ *+%d очков*" % (message.text, len(message.text) / 2), parse_mode="Markdown")  
-                try:
-                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt") as player:
-                        score = int(player.read())
-
-                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
-                        player.write(str(score + int(len(message.text) / 2)))
-                except FileNotFoundError:
-                    with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
-                        player.write(str(int(len(message.text) / 2)))
+                        with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                            player.write(str(score + int(len(message.text) / 2)))
+                    except FileNotFoundError:
+                        with open("chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                            player.write(str(int(len(message.text) / 2)))
+        except FileNotFoundError:
+            return True
     except Exception as e:
         print(repr(e)) 
 
@@ -1184,21 +1202,46 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             if callback_query.from_user.id == callback_query.message.reply_to_message.from_user.id:
                 return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Это ваш вызов...", show_alert=True)
 
-            hand = ["Камень 🗿", "Ножницы ✂", "Бумага 🧻"]
+            with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt", "w+") as game:
+                game.write("%d|%s|%d|%s|None|None" % (callback_query.message.reply_to_message.from_user.id, callback_query.message.reply_to_message.from_user.first_name, callback_query.from_user.id, callback_query.from_user.first_name))
 
-            player = random.randint(0,len(hand) - 1)
-            enemy = random.randint(0,len(hand) - 1)
+            buttons = [types.InlineKeyboardButton(text="Камень", callback_data="Камень"),types.InlineKeyboardButton(text="Ножницы", callback_data="Ножницы"),types.InlineKeyboardButton(text="Бумага", callback_data="Бумага")]
+            keyboard = types.InlineKeyboardMarkup(row_width=1)
+            keyboard.add(*buttons)
 
-            game_message = "🍍 *Камень-Ножницы-Бумага*\n\n[%s](tg://user?id=%d) - %s\n[%s](tg://user?id=%d) - %s\n\n" % (callback_query.from_user.first_name, callback_query.from_user.id, hand[player], callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, hand[enemy])
+            game_message = "🍍 *Вызов принят..*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d)\n2️⃣ [%s](tg://user?id=%d)\n\n⌛ Ход: *60 секунд*" % (callback_query.from_user.first_name, callback_query.from_user.id, callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
+            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=keyboard)
+        elif code == "Камень" or code == "Ножницы" or code =="Бумага":
+            with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt") as game:
+                result = game.read().split("|")
 
-            if player == enemy:
-                game_message += "*Ничья!*"
-            elif player == 0 and enemy == 1 or player == 0 and enemy == 2 or player == 1 and enemy == 2:
-                game_message += "*Победитель:*\n\t[%s](tg://user?id=%d) - 👑" % (callback_query.from_user.first_name, callback_query.from_user.id)
-            elif player == 0 and enemy == 1 or player == 2 and enemy == 0 or player == 2 and enemy == 1:
-                game_message += "*Победитель:*\n\t[%s](tg://user?id=%d) - 👑" % (callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
+            if int(result[0]) != callback_query.from_user.id and int(result[2]) != callback_query.from_user.id:
+                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы не можете ходить", show_alert=True)
+
+            buttons = [types.InlineKeyboardButton(text="Камень", callback_data="Камень"),types.InlineKeyboardButton(text="Ножницы", callback_data="Ножницы"),types.InlineKeyboardButton(text="Бумага", callback_data="Бумага")]
+            keyboard = types.InlineKeyboardMarkup(row_width=1)
+            keyboard.add(*buttons)
+
+            if int(result[0]) == callback_query.from_user.id and result[4] == "None":
+                result[4] = code
+            elif int(result[2]) == callback_query.from_user.id and result[5] == "None":
+                result[5] = code
+
+            with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt", "w+") as game:
+                game.write("%s|%s|%s|%s|%s|%s" % (result[0], result[1], result[2], result[3], result[4], result[5]))
             
-            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=None)
+            game_message = "🍍 *Вызов принят..*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d)\n2️⃣ [%s](tg://user?id=%d)\n\n⌛ Ход: *60 секунд*\n\n[%s](tg://user?id=%d) - сделал(-а) ход" % (result[1], int(result[0]), result[3], int(result[2]), callback_query.from_user.first_name, callback_query.from_user.id)
+            if result[4] != "None" and result[5] != "None":
+                os.remove(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt")
+                keyboard = None
+                if result[4] == result[5]:
+                    game_message = "🍍 *Ничья*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d) - %s\n2️⃣ [%s](tg://user?id=%d) - %s" % (result[1], int(result[0]), result[4], result[3], int(result[2]), result[5])
+                elif result[4] == "Камень" and result[5] == "Ножницы" or result[4] == "Бумага" and result[5] == "Камень" or result[4] == "Ножницы" and result[5] == "Бумага":
+                    game_message = "🍍 *Игра окончена!*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d) - %s\n2️⃣ [%s](tg://user?id=%d) - %s\n\n*Победитель:*\n[%s](tg://user?id=%d)" % (result[1], int(result[0]), result[4], result[3], int(result[2]), result[5], result[1], int(result[0]))
+                elif result[5] == "Камень" and result[4] == "Ножницы" or result[5] == "Бумага" and result[4] == "Камень" or result[5] == "Ножницы" and result[4] == "Бумага":
+                    game_message = "🍍 *Игра окончена!*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d) - %s\n2️⃣ [%s](tg://user?id=%d) - %s\n\n*Победитель:*\n[%s](tg://user?id=%d)" % (result[1], int(result[0]), result[4], result[3], int(result[2]), result[5], result[3], int(result[2]))
+
+            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=keyboard)
 
         elif code == "Крестики-нолики":
 

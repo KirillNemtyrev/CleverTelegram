@@ -13,6 +13,7 @@ import time
 from pyowm import OWM
 from pyowm.utils.config import get_default_config
 from translate import Translator
+from langdetect import detect
 
 from bs4 import BeautifulSoup
 from config import TOKEN,DEVELOPER,API_KEY
@@ -1128,7 +1129,8 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "ru" or code == "en" or code == "kk" or code == "ar" or code == "de" or code == "fr" or code == "es" or code == "zh-cn":
             
-            translator= Translator(to_lang=code)
+            lang = detect(callback_query.message.reply_to_message.md_text)
+            translator= Translator(from_lang=lang, to_lang=code)
             translation = translator.translate(callback_query.message.reply_to_message.md_text)
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 Перевод:\n\n" + translation,reply_markup=None)
         

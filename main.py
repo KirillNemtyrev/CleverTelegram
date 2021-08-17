@@ -1181,8 +1181,8 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 
         elif code == "Рука":
 
-            #if callback_query.from_user.id == callback_query.message.reply_to_message.from_user.id:
-                #return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Это ваш вызов...", show_alert=True)
+            if callback_query.from_user.id == callback_query.message.reply_to_message.from_user.id:
+                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Это ваш вызов...", show_alert=True)
 
             hand = ["Камень 🗿", "Ножницы ✂", "Бумага 🧻"]
 

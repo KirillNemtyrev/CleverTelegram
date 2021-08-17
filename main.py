@@ -110,6 +110,7 @@ async def new_chat_members_delete(message):
     try:
         if await is_admin_group(message.chat.id, message.bot.id):
             await bot.delete_message(message.chat.id, message.message_id)
+            
         if message.new_chat_members[0].id == bot.id:
             # KeyBoard
             buttons  = [ 
@@ -383,18 +384,19 @@ async def mafia_command(message: types.Message):
         await bot.delete_message(message.chat.id, step_third_message.message_id)
 
         players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia")
-        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
-        for temp in players:
-            os.remove(os.getcwd() + "/users/" + temp)
-            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia/" + temp)
-            return await bot.edit_message_text(chat_id=message.chat.id, message_id=step_first_message.message_id, text="🍍 *Мафия*\n\nНедостаточно игроков для начала игры.", parse_mode="Markdown",reply_markup=None)
+        if len(players) < 3:
+            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
+            for temp in players:
+                os.remove(os.getcwd() + "/users/" + temp)
+                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/mafia/" + temp)
+                return await bot.edit_message_text(chat_id=message.chat.id, message_id=step_first_message.message_id, text="🍍 *Мафия*\n\nНедостаточно игроков для начала игры.", parse_mode="Markdown",reply_markup=None)
 
         count_mafia = 0
         count_police = 0
         count_medic = 0
         count_whore = 0
 
-        if len(players) >= 1 and len(players) <= 5:
+        if len(players) >= 3 and len(players) <= 5:
             count_mafia = 1
 
         elif len(players) > 5 and len(players) <= 6:
@@ -1010,7 +1012,6 @@ async def check_all_messages(message):
                     if await is_admin_group(message.chat.id, message.bot.id):
                         return await bot.delete_message(message.chat.id, message.message_id)
                     return await message.reply("🤬 Попрошу не выражаться!")
-                    break
 
         if is_game_in_chat(message.chat.id) == False:
             try:
@@ -1062,7 +1063,6 @@ async def check_all_messages(message):
                 for temp in result:
                     if temp.lower() == message.text.lower():
                         return await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
-                        break
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
                     city.write(cities + message.text + " ")

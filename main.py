@@ -268,9 +268,9 @@ async def hand_command(message: types.Message):
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
         if is_game_in_chat(message.chat.id):
-            if not await is_admin_group(message.chat.id, message.bot.id):
+            if not await is_admin_group(message.chat.id, bot.id):
                 return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
-            await bot.delete_message(message.chat.id, message.message_id)
+            return await bot.delete_message(message.chat.id, message.message_id)
 
         verification_dirs_chat(message.chat.id)
 
@@ -1007,6 +1007,41 @@ async def leave_from_mafia(chat, user):
     except Exception as e:
         pass
 
+# Types: dice
+@dp.message_handler(content_types=["dice"])
+async def dice_message(message):
+
+    if is_game_in_chat(message.chat.id) and message.chat.id != message.from_user.id:
+        if not await is_admin_group(message.chat.id, bot.id):
+            return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
+        return await bot.delete_message(message.chat.id, message.message_id)
+
+    if message.dice.emoji == "🏀" and message.dice.value > 3:
+        await asyncio.sleep(5)
+        success = ["Шикарный бросок!", "Великолепный бросок!", "Отличный бросок!", "Хороший бросок!", "Здорово попадаешь!", "Что-же, ты молодец!", "Ух ты, красава!"]
+        return await message.reply("🍍 *%s*" % choice(success), parse_mode="Markdown")
+    
+    if message.dice.emoji == "🎲":
+        await asyncio.sleep(5)
+        return await message.reply("🍍 *Кубик\nВыпало: %d*" % (message.dice.value), parse_mode="Markdown")
+
+    if message.dice.emoji == "🎯":
+        await asyncio.sleep(5)
+        if message.dice.value == 6:
+            return await message.reply("🍍 *Ух ты, прямо в яблочке*", parse_mode="Markdown")
+
+        if message.dice.value == 5:
+            return await message.reply("🍍 *Нуу почти в яблочко*", parse_mode="Markdown")
+
+        if message.dice.value == 4:
+            return await message.reply("🍍 *Было близко..*", parse_mode="Markdown")
+
+        if message.dice.value == 3 or message.dice.value == 2:
+            return await message.reply("🍍 *Старайся лучше..*", parse_mode="Markdown")
+
+        else: 
+            return await message.reply("🍍 *Для приличия, мог(-ла) бы и попасть..*", parse_mode="Markdown")
+
 # Types: text
 @dp.message_handler(content_types=["text"])
 async def check_all_messages(message):
@@ -1020,7 +1055,7 @@ async def check_all_messages(message):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🤬 Попрошу не выражаться!")
 
-        if not is_game_in_chat(message.chat.id):
+        if not is_game_in_chat(message.chat.id) and message.chat.id != message.from_user.id:
             return True
 
         with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:

@@ -161,7 +161,7 @@ async def new_chat_members_delete(message):
         pass
 
 # Command: start
-@dp.message_handler(commands=['start', 'help', 'welcome'], prefixes="!@.")
+@dp.message_handler(commands=['start', 'help', 'welcome'])
 async def start_command(message: types.Message):
     try:
         buttons  = [types.InlineKeyboardButton(text='Игры 📌', callback_data="Игры"),types.InlineKeyboardButton(text='Помощь ◀', callback_data="Помощь")] 
@@ -172,7 +172,7 @@ async def start_command(message: types.Message):
         pass
 
 # Bag command
-@dp.message_handler(commands=['bag'], prefixes="!@.")
+@dp.message_handler(commands=['bag'])
 async def mute_command(message: types.Message):
     try:
         text = message.text.split(" ")
@@ -188,7 +188,7 @@ async def mute_command(message: types.Message):
 
 # Admins commands
 # Command: mute
-@dp.message_handler(commands=['mute'], prefixes="!@.")
+@dp.message_handler(commands=['mute'])
 async def mute_command(message: types.Message):
     try:
         if message.chat.id == message.from_user.id:
@@ -215,7 +215,7 @@ async def mute_command(message: types.Message):
         pass
 
 # Command: Kick
-@dp.message_handler(commands=['kick'], prefixes="!@.")
+@dp.message_handler(commands=['kick'])
 async def kick_command(message: types.Message):
     try:
         if message.chat.id == message.from_user.id:
@@ -244,7 +244,7 @@ async def kick_command(message: types.Message):
 
 # Games
 # Command: Fanta
-@dp.message_handler(commands=['fanta'], prefixes="!@.")
+@dp.message_handler(commands=['fanta'])
 async def fanta_command(message: types.Message):
     try:
 
@@ -261,7 +261,7 @@ async def fanta_command(message: types.Message):
         pass
 
 # Command: hand
-@dp.message_handler(commands=['hand'], prefixes="!@.")
+@dp.message_handler(commands=['hand'])
 async def hand_command(message: types.Message):
     try:
         if message.chat.id == message.from_user.id:
@@ -283,7 +283,7 @@ async def hand_command(message: types.Message):
         print(repr(e)) 
 
 # Command: crosses
-@dp.message_handler(commands=['crosses'], prefixes="!@.")
+@dp.message_handler(commands=['crosses'])
 async def crosses_command(message: types.Message):
     try:
         if message.chat.id == message.from_user.id:
@@ -327,7 +327,7 @@ def progress_to_win_crosses(check_pos):
     return False
 
 # Command: cities
-@dp.message_handler(commands=['cities'], prefixes="!@.")
+@dp.message_handler(commands=['cities'])
 async def crosses_command(message: types.Message):
     try:
         if message.chat.id == message.from_user.id:
@@ -354,7 +354,7 @@ async def crosses_command(message: types.Message):
 
         step = await message.answer("🍍 *Города*\nИгра города запущена!\n\n📌 Бот пишет букву на которую нужно написать город\nСледующий ход будет на последнию букву города\nСоответственно игрок пропустит следующий ход\n\nНапишите город на букву: *%s*" % first_letter, parse_mode="Markdown")        
         await asyncio.sleep(60)
-        try:
+        if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                 record = game.read().split("|")
 
@@ -362,13 +362,11 @@ async def crosses_command(message: types.Message):
                 os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
                 os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
                 return await bot.delete_message(message.chat.id, step.message_id)
-        except FileNotFoundError:
-            return True
     except Exception as e:
-        print(repr(e))    
+        pass   
 
 # Command: mafia
-@dp.message_handler(commands=['mafia'], prefixes="!@.")
+@dp.message_handler(commands=['mafia'])
 async def mafia_command(message: types.Message):
     try:
         if message.chat.id == message.from_user.id:
@@ -507,7 +505,7 @@ async def mafia_command(message: types.Message):
         step_final_message = await message.answer("🍍 *Мафия*\n\nИгра началась!", parse_mode="Markdown")
         await set_mafia_mode(message.chat.id, 1, "Night", message.message_id, True)
     except Exception as e:
-        print(repr(e)) 
+        pass
 
 # Help functions
 async def game_give_role(chat_id, user_id, role):
@@ -524,7 +522,7 @@ async def game_give_role(chat_id, user_id, role):
 
         return await bot.send_message(user_id, roles[role], parse_mode="Markdown")
     except Exception as e:
-        print(repr(e)) 
+        pass
 
 async def set_mafia_mode(chat_id, day, mode, message, start=False):
     try:
@@ -827,7 +825,7 @@ def destroy_mafia(chat_id):
         pass 
 
 # Command: associations
-@dp.message_handler(commands=['associations'], prefixes="!@.")
+@dp.message_handler(commands=['associations'])
 async def associations_command(message: types.Message):
     try:
         if message.chat.id == message.from_user.id:
@@ -925,7 +923,7 @@ def parse_words(chat_id, word):
         pass
 
 # Command: Leave
-@dp.message_handler(commands=['leave'], prefixes="!@.")
+@dp.message_handler(commands=['leave'])
 async def leave_command(message: types.Message):
     try:
         if os.path.isfile(os.getcwd() + "/users/" + str(message.from_user.id) + ".txt"):

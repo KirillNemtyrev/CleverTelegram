@@ -280,7 +280,21 @@ async def hand_command(message: types.Message):
 
         return await message.reply("🍍 [%s](tg://user?id=%d) кидает вызов в камень-ножницы-бумага" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
     except Exception as e:
-        print(repr(e)) 
+        pass 
+
+# Command: coinflip
+@dp.message_handler(commands=['coinflip'])
+async def coinflip_command(message: types.Message):
+    try:
+        if is_game_in_chat(message.chat.id):
+            if not await is_admin_group(message.chat.id, bot.id):
+                return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
+            await bot.delete_message(message.chat.id, message.message_id)
+
+        coin = ["Орёл", "Решка"]
+        return await message.reply("🍍 [%s](tg://user?id=%d) подбросил монету\n*Выпало: 🪙 %s*" % (message.from_user.first_name,message.from_user.id, choice(coin)), parse_mode="Markdown")        
+    except Exception as e:
+        pass
 
 # Command: crosses
 @dp.message_handler(commands=['crosses'])
@@ -302,7 +316,7 @@ async def crosses_command(message: types.Message):
 
         return await message.reply("🍍 [%s](tg://user?id=%d) хочет поиграть в крестики-нолики" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)        
     except Exception as e:
-        print(repr(e)) 
+        pass
 
 # Help function crosses
 def progress_to_win_crosses(check_pos):

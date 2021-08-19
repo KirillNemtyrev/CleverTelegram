@@ -1010,14 +1010,13 @@ async def leave_from_mafia(chat, user):
 # Types: dice
 @dp.message_handler(content_types=["dice"])
 async def dice_message(message):
-
     if is_game_in_chat(message.chat.id) and message.chat.id != message.from_user.id:
         if not await is_admin_group(message.chat.id, bot.id):
             return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
         return await bot.delete_message(message.chat.id, message.message_id)
 
     if message.dice.emoji == "🏀" and message.dice.value > 3:
-        await asyncio.sleep(5)
+        await asyncio.sleep(4)
         success = ["Шикарный бросок!", "Великолепный бросок!", "Отличный бросок!", "Хороший бросок!", "Здорово попадаешь!", "Что-же, ты молодец!", "Ух ты, красава!"]
         return await message.reply("🍍 *%s*" % choice(success), parse_mode="Markdown")
     
@@ -1026,7 +1025,7 @@ async def dice_message(message):
         return await message.reply("🍍 *Кубик\nВыпало: %d*" % (message.dice.value), parse_mode="Markdown")
 
     if message.dice.emoji == "🎯":
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
         if message.dice.value == 6:
             return await message.reply("🍍 *Ух ты, прямо в яблочке*", parse_mode="Markdown")
 
@@ -1041,6 +1040,22 @@ async def dice_message(message):
 
         else: 
             return await message.reply("🍍 *Для приличия, мог(-ла) бы и попасть..*", parse_mode="Markdown")
+
+    if message.dice.emoji == "⚽" and message.dice.value >= 3:
+        await asyncio.sleep(4)
+        success = ["Шикарный удар!", "Великолепный удар!", "Отличный удар!", "Хороший удар!", "Здорово попадаешь!", "Ты как роналду!", "Хороший удар, 'месси'.."]
+        return await message.reply("🍍 *%s*" % choice(success), parse_mode="Markdown")
+
+    if message.dice.emoji == "🎳":
+        await asyncio.sleep(3)
+        if message.dice.value == 6:
+            return await message.reply("🍍 *Боулинг\nСтрайк! Отличный бросок*", parse_mode="Markdown")
+
+        elif message.dice.value == 1:
+            return await message.reply("🍍 *Боулинг\nЧто-же можно и попасть*..", parse_mode="Markdown")
+
+        else:
+            return await message.reply("🍍 *Боулинг\nПочти страйк:)*", parse_mode="Markdown")
 
 # Types: text
 @dp.message_handler(content_types=["text"])
@@ -1152,7 +1167,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/mafia - Игра мафия\n/cities - Игра в Города\n/hand - Камень-Ножницы-Бумага\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞\n/coinflip - Подбросить монету"
+            message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/mafia - Игра мафия\n/cities - Игра в Города\n/hand - Камень-Ножницы-Бумага\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞\n/coinflip - Подбросить монету\n\n🍍 *Стикеры:*\n🏀 - Подбросить мяч\n🎲 - Подбросить кость\n🎯 - Дартс\n⚽ - Пнуть мяч\n🎳 - Кинуть шар"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":

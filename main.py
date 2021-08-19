@@ -379,6 +379,25 @@ async def crosses_command(message: types.Message):
     except Exception as e:
         pass   
 
+# Command: Leave
+@dp.message_handler(commands=['random'])
+async def random_command(message: types.Message):
+    try:
+        if is_game_in_chat(message.chat.id):
+            if not await is_admin_group(message.chat.id, bot.id):
+                return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
+            return await bot.delete_message(message.chat.id, message.message_id)
+
+        message.text = message.text.replace("/random ", "")
+        random_choose = message.text.split(",")
+        if not random_choose[0] or not random_choose[1] or len(random_choose) > 2:
+            return await message.reply("🍍 Используйте: /random фраза 1,фраза 2")
+
+        await message.reply("🍍 *%s*" % choice(random_choose), parse_mode="Markdown")
+
+    except Exception as e:
+        pass   
+
 # Command: mafia
 @dp.message_handler(commands=['mafia'])
 async def mafia_command(message: types.Message):
@@ -1167,7 +1186,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/mafia - Игра мафия\n/cities - Игра в Города\n/hand - Камень-Ножницы-Бумага\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞\n/coinflip - Подбросить монету\n\n🍍 *Стикеры:*\n🏀 - Подбросить мяч\n🎲 - Подбросить кость\n🎯 - Дартс\n⚽ - Пнуть мяч\n🎳 - Кинуть шар"
+            message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/mafia - Игра мафия\n/cities - Игра в Города\n/hand - Камень-Ножницы-Бумага\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞\n/coinflip - Подбросить монету\n/random фраза 1,фраза 2 - Выбрать случайно действие\n\n🍍 *Стикеры:*\n🏀 - Подбросить мяч\n🎲 - Подбросить кость\n🎯 - Дартс\n⚽ - Пнуть мяч\n🎳 - Кинуть шар"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":

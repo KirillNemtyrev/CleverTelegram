@@ -275,7 +275,10 @@ async def hand_command(message: types.Message):
         keyboard = types.InlineKeyboardMarkup(row_width=1)
         keyboard.add(*buttons)
 
-        return await message.reply("🍍 [%s](tg://user?id=%d) кидает вызов в камень-ножницы-бумага" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
+        step = await message.reply("🍍 [%s](tg://user?id=%d) кидает вызов в камень-ножницы-бумага" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
+        await asyncio.sleep(20)
+        if not os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/hand/" + str(step.message_id) + ".txt"):
+            await bot.edit_message_text(chat_id=message.chat.id, message_id=step.message_id, text="🍍 Никто не хочет играть:(")
     except Exception as e:
         pass 
 
@@ -298,7 +301,9 @@ async def crosses_command(message: types.Message):
         verification_dirs_chat(message.chat.id)
 
         step = await message.reply("🍍 [%s](tg://user?id=%d) хочет поиграть в крестики-нолики" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)        
-
+        await asyncio.sleep(20)
+        if not os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/crosses/" + str(step.message_id) + ".txt"):
+            await bot.edit_message_text(chat_id=message.chat.id, message_id=step.message_id, text="🍍 Никто не хочет играть:(")
     except Exception as e:
         pass
 
@@ -731,8 +736,6 @@ async def check_all_messages(message):
                         return await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
                     except Exception as e:
                         return await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
-        if "Night" in game_text:
-            return await bot.delete_message(message.chat.id, message.message_id)
         if "ASSOCIATIONS" in game_text:
 
             with open("chats/" + str(message.chat.id) + "/parse.txt") as parse:

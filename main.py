@@ -207,7 +207,7 @@ async def mute_command(message: types.Message):
             return await message.reply("🍍 [%s](tg://user?id=%d) является *Администратором*" % (message.reply_to_message.from_user.first_name,message.reply_to_message.from_user.id), parse_mode="Markdown")
 
         await message.answer("🍍 [%s](tg://user?id=%d) *не сможет писать в чат 30 минут*" % (message.reply_to_message.from_user.first_name,message.reply_to_message.from_user.id), parse_mode="Markdown")
-        await bot.restrict_chat_member(message.chat.id, message.reply_to_message.from_user.id,until_date=int(time.time()) + 60*30,can_send_messages=False)
+        await bot.restrict_chat_member(chat_id=message.chat.id, user_id=message.reply_to_message.from_user.id,until_date=int(time.time()) + 60*30, can_send_messages=False)
     except Exception as e:
         pass
 
@@ -664,6 +664,7 @@ async def check_all_messages(message):
             game_text = game.read()
 
         if "CHARADE" in game_text:
+
             info = game_text.split("|")
             if int(info[2]) == message.from_user.id and message.text.lower() in info[1].lower():
                 return await bot.delete_message(message.chat.id, message.message_id)
@@ -683,7 +684,7 @@ async def check_all_messages(message):
             buttons = [types.InlineKeyboardButton(text='Да', callback_data="Верным"), types.InlineKeyboardButton(text='Нет', callback_data="Не верным"), types.InlineKeyboardButton(text='Наверное', callback_data="Возможным")] 
             keyboard = types.InlineKeyboardMarkup(row_width=2)
             keyboard.add(*buttons)
-            await message.reply("🍍 *Шарада*\nВерно ли утверждение?", parse_mode="Markdown", reply_markup=keyboard)
+            return await message.reply("🍍 *Шарада*\nВерно ли утверждение?", parse_mode="Markdown", reply_markup=keyboard)
 
         if "CITIES" in game_text:
             mgr = owm.weather_manager()
@@ -723,47 +724,46 @@ async def check_all_messages(message):
                 game.write("CITIES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
 
             await message.reply("🍍 *Города*\nГород *%s* засчитано\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
+            
             await asyncio.sleep(60)
             if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
+
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                     record = game.read().split("|")
 
                 if int(record[2]) == message.from_user.id and int(record[3]) == int(records[3]) + 1:
                     os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
                     os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
+
                     try:
                         info = await bot.get_chat_member(message.chat.id, message.from_user.id)
-                        return await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
+                        await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
                     except Exception as e:
-                        return await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
+                        await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
+
         if "ASSOCIATIONS" in game_text:
 
             with open("chats/" + str(message.chat.id) + "/parse.txt") as parse:
                 text = parse.read()
 
             text_split = text.split(",")
-            FIND = False
 
             for item in text_split:
                 if message.text.lower() == item:
-                    FIND = True
-                    break
+                    with open("chats/" + str(message.chat.id) + "/parse.txt", "+w") as parse:
+                        parse.write(text.replace(message.text.lower() + ",", ""))
 
-            if FIND is True:
+                    await message.reply("🍍 *Ассоциации*\n\nСлово *%s* засчитано\n⚡ *+%d очков*" % (message.text, len(message.text) / 2), parse_mode="Markdown")  
+                    if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt"):
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt") as player:
+                            score = int(player.read())
 
-                with open("chats/" + str(message.chat.id) + "/parse.txt", "+w") as parse:
-                    parse.write(text.replace(message.text.lower() + ",", ""))
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                            player.write(str(score + int(len(message.text) / 2)))
+                    else:
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                            player.write(str(int(len(message.text) / 2)))
 
-                await message.reply("🍍 *Ассоциации*\n\nСлово *%s* засчитано\n⚡ *+%d очков*" % (message.text, len(message.text) / 2), parse_mode="Markdown")  
-                if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt"):
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt") as player:
-                        score = int(player.read())
-
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
-                        player.write(str(score + int(len(message.text) / 2)))
-                else:
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
-                        player.write(str(int(len(message.text) / 2)))
     except Exception as e:
         print(repr(e))
 

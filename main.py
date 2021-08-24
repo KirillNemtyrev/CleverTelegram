@@ -618,7 +618,8 @@ async def check_all_messages(message):
             last_time[message.from_user.id] = time.time()
         else:
             if (time.time() - last_time[message.from_user.id]) * 1000 < 1000:
-                return await bot.delete_message(message.chat.id, message.message_id)
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
             last_time[message.from_user.id] = time.time()
 
         if message.chat.id == message.from_user.id:

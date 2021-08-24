@@ -207,7 +207,8 @@ async def mute_command(message: types.Message):
             return await message.reply("🍍 [%s](tg://user?id=%d) является *Администратором*" % (message.reply_to_message.from_user.first_name,message.reply_to_message.from_user.id), parse_mode="Markdown")
 
         await message.answer("🍍 [%s](tg://user?id=%d) *не сможет писать в чат 30 минут*" % (message.reply_to_message.from_user.first_name,message.reply_to_message.from_user.id), parse_mode="Markdown")
-        await bot.restrict_chat_member(chat_id=message.chat.id, user_id=message.reply_to_message.from_user.id,until_date=int(time.time()) + 60*30, can_send_messages=False)
+        await bot.restrict_chat_member(chat_id=message.chat.id, user_id=message.reply_to_message.from_user.id,until_date=int(time.time()) + 60*30, can_send_messages=False, can_send_media_messages=False,
+        can_send_polls=False, can_send_other_messages=False)
     except Exception as e:
         pass
 

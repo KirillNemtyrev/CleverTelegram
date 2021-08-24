@@ -21,8 +21,8 @@ dp = Dispatcher(bot)
 owm = OWM(API_KEY)
 
 letters = ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Э", "Ю", "Я"]
-not_spam_text = []
-not_spam_commands = []
+not_spam_text = {}
+not_spam_commands = {}
 
 # Check have user admin in group
 async def is_admin_group(chat_id, user_id):

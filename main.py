@@ -21,6 +21,7 @@ dp = Dispatcher(bot)
 owm = OWM(API_KEY)
 
 letters = ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Э", "Ю", "Я"]
+last_time = {}
 
 # Check have user admin in group
 async def is_admin_group(chat_id, user_id):
@@ -612,6 +613,13 @@ async def check_all_messages(message):
                 if await is_admin_group(message.chat.id, bot.id):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🤬 Попрошу не выражаться!")
+
+        if message.from_user.id not in last_time:
+            last_time[message.from_user.id] = time.time()
+        else:
+            if (time.time() - last_time[message.from_user.id]) * 1000 < 500:
+                return await bot.delete_message(message.chat.id, message.message_id)
+            last_time[message.from_user.id] = time.time()
 
         if message.chat.id == message.from_user.id:
             if os.path.isfile(os.getcwd() + "/users/" + str(message.from_user.id) + ".txt"):

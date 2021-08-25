@@ -20,7 +20,7 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 owm = OWM(API_KEY)
 
-letters = ["А", "Б", "В", "Г", "Д", "Е", "Ё", "Ж", "З", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Э", "Ю", "Я"]
+letters = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Я"]
 not_spam_text = {}
 not_spam_commands = {}
 
@@ -550,17 +550,17 @@ async def check_all_messages(message):
 
             if "CITIES" in game_text:
                 try:
-                    observation = owm.weather_at_place(message.text)
-                    status = observation.get_weather()
-                    temperature = status.get_temperature('celsius')['temp']
+                    mgr = owm.weather_manager()
+                    observation = mgr.weather_at_place(message.text)
+                    status = observation.weather
+                    temperature = status.temperature('celsius')['temp']
 
                     city = message.text.upper() 
                     first_letter = city[:1]
                     last_letter = city.replace(city[:-1], "")
 
-                    for temp in letters:
-                        if temp == last_letter:
-                            last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
+                    if last_letter not in letters:
+                        last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
 
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                         records = game.read().split("|")
@@ -589,17 +589,17 @@ async def check_all_messages(message):
                     else:
                         previsione = "жарко" 
 
-                    send_prevision = ["Хороший ответ!\nТам кстате сейчас %s (%d)°C",
-                    "Хороший ход\nЕсли я не ошибаюсь, а я не ошибаюсь, там сейчас %s (%d)°C",
-                    "Хмм.. Я недавно был там, там вроде %s (%d)°C",
-                    "Ух ты, думал не вспомнишь\nТам кстате щас %s (%d)°C",
-                    "Я загуглил этот город\nТам сейчас %s (%d)°C",
-                    "В Яндексе написано что щас там %s (%d)°C",
-                    "Мой градусник врать не будет!\nСейчас там %s (%d)°C",
-                    "Возможно там сейчас %s (%d)°C\nНу хотя кто знает...\n",
-                    "Красивое название!\nПогода там %s (%d)°C"]   
+                    send_prevision = ["Хороший ответ!\nТам кстате сейчас",
+                    "Хороший ход\nЕсли я не ошибаюсь, а я не ошибаюсь, там сейчас",
+                    "Хмм.. Я недавно был там, там вроде",
+                    "Ух ты, думал не вспомнишь\nТам кстате щас",
+                    "Я загуглил этот город\nТам сейчас",
+                    "В Яндексе написано что щас там",
+                    "Мой градусник врать не будет!\nСейчас там",
+                    "Угу, там вроде сейчас",
+                    "Красивое название!\nПогода там"]   
 
-                    await message.reply("🍍 *Города\n%s*\n\n" + choice(send_prevision) % (previsione, temperature)  + "\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
+                    await message.reply("🍍 *Города*\n\n*🌍 %s\n%s %s*\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, choice(send_prevision), previsione, last_letter), parse_mode="Markdown")
                     
                     await asyncio.sleep(60)
                     if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
@@ -617,7 +617,7 @@ async def check_all_messages(message):
                             except Exception as e:
                                 await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
                 except Exception as e:
-                    return True
+                    print(repr(e))
 
             if "ASSOCIATIONS" in game_text:
 

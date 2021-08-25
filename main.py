@@ -626,9 +626,10 @@ async def check_all_messages(message):
             if "ASSOCIATIONS" in game_text:
 
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/parse.txt") as parse:
-                    text = parse.read().split(",")
+                    text = parse.read()
 
-                for item in text:
+                text_split = text.split(",")
+                for item in text_split:
                     if message.text.lower() == item:
                         with open("chats/" + str(message.chat.id) + "/parse.txt", "+w") as parse:
                             parse.write(text.replace(message.text.lower() + ",", ""))

@@ -117,19 +117,6 @@ def remove_dirs_chat(chat_id):
     except Exception as e:
         print(repr(e))
 
-# Guard spawm commands
-def guard_spam_commands(chat_id):
-    try:
-        if chat_id not in not_spam_commands:
-            not_spam_commands[chat_id] = time.time()
-        else:
-            if (time.time() - not_spam_commands[chat_id]) * 1000 < 5000:
-                return True
-            not_spam_commands[chat_id] = time.time()
-        return False
-    except Exception as e:
-        print(repr(e))
-
 # Type: new member
 @dp.message_handler(content_types=["new_chat_members"])
 async def new_chat_members_delete(message):
@@ -181,9 +168,14 @@ async def start_command(message: types.Message):
                 return await bot.delete_message(message.chat.id, message.message_id)
             return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
 
-        if guard_spam_commands(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return True
+            not_spam_commands[message.chat.id] = time.time()
 
         buttons  = [types.InlineKeyboardButton(text='Игры 📌', callback_data="Игры"),types.InlineKeyboardButton(text='Помощь ◀', callback_data="Помощь")] 
         keyboard = types.InlineKeyboardMarkup(row_width=2)
@@ -198,9 +190,14 @@ async def start_command(message: types.Message):
 @dp.message_handler(commands=['mute'])
 async def mute_command(message: types.Message):
     try:
-        if guard_spam_commands(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return True
+            not_spam_commands[message.chat.id] = time.time()
 
         if message.chat.id == message.from_user.id:
             return await message.answer("🍍 Нужно использовать только в чатах!")
@@ -229,9 +226,14 @@ async def mute_command(message: types.Message):
 @dp.message_handler(commands=['kick'])
 async def kick_command(message: types.Message):
     try:
-        if guard_spam_commands(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return True
+            not_spam_commands[message.chat.id] = time.time()
 
         if message.chat.id == message.from_user.id:
             return await message.answer("🍍 Нужно использовать только в чатах!")
@@ -262,9 +264,14 @@ async def kick_command(message: types.Message):
 @dp.message_handler(commands=['fanta'])
 async def fanta_command(message: types.Message):
     try:
-        if guard_spam_commands(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return True
+            not_spam_commands[message.chat.id] = time.time()
 
         if is_game_in_chat(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
@@ -290,9 +297,14 @@ async def hand_command(message: types.Message):
         if message.chat.id == message.from_user.id:
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
-        if guard_spam_commands(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return True
+            not_spam_commands[message.chat.id] = time.time()
 
         if is_game_in_chat(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
@@ -320,9 +332,14 @@ async def crosses_command(message: types.Message):
         if message.chat.id == message.from_user.id:
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
-        if guard_spam_commands(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return True
+            not_spam_commands[message.chat.id] = time.time()
 
         if is_game_in_chat(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
@@ -371,9 +388,14 @@ async def crosses_command(message: types.Message):
         if message.chat.id == message.from_user.id:
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
-        if guard_spam_commands(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return True
+            not_spam_commands[message.chat.id] = time.time()
 
         if is_game_in_chat(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
@@ -417,9 +439,14 @@ async def associations_command(message: types.Message):
         if not await is_admin_group(message.chat.id, bot.id):
             return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
 
-        if guard_spam_commands(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return True
+            not_spam_commands[message.chat.id] = time.time()
 
         if is_game_in_chat(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
@@ -610,7 +637,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         
         elif code == "Помощь":
 
-            message = "🍍 *Помощь*\n\nВ случае возникновения технической проблемы\nОбратитесь в техническую поддержку\n\n📌 Используйте: */bag [Текст]*"
+            message = "🍍 *Помощь*\n\nАдминистративные команды:\n/mute - Заглушить на 30 мин\n/kick - Кикнуть игрока"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
 
         elif code == "Рука":

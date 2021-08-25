@@ -621,7 +621,7 @@ async def check_all_messages(message):
                             except Exception as e:
                                 await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
                 except Exception as e:
-                    print(repr(e))
+                    pass
 
             if "ASSOCIATIONS" in game_text:
 

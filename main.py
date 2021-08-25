@@ -118,14 +118,14 @@ def remove_dirs_chat(chat_id):
         print(repr(e))
 
 # Guard spawm commands
-async def guard_spam_commands(user_id):
+def guard_spam_commands(chat_id):
     try:
-        if user_id not in not_spam_commands:
-            not_spam_commands[user_id] = time.time()
+        if chat_id not in not_spam_commands:
+            not_spam_commands[chat_id] = time.time()
         else:
-            if (time.time() - not_spam_commands[user_id]) * 1000 < 2000:
+            if (time.time() - not_spam_commands[chat_id]) * 1000 < 5000:
                 return True
-            not_spam_commands[user_id] = time.time()
+            not_spam_commands[chat_id] = time.time()
         return False
     except Exception as e:
         print(repr(e))
@@ -181,7 +181,7 @@ async def start_command(message: types.Message):
                 return await bot.delete_message(message.chat.id, message.message_id)
             return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
 
-        if guard_spam_commands(message.from_user.id):
+        if guard_spam_commands(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
                 return await bot.delete_message(message.chat.id, message.message_id)
 
@@ -198,7 +198,7 @@ async def start_command(message: types.Message):
 @dp.message_handler(commands=['mute'])
 async def mute_command(message: types.Message):
     try:
-        if guard_spam_commands(message.from_user.id):
+        if guard_spam_commands(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
                 return await bot.delete_message(message.chat.id, message.message_id)
 
@@ -229,7 +229,7 @@ async def mute_command(message: types.Message):
 @dp.message_handler(commands=['kick'])
 async def kick_command(message: types.Message):
     try:
-        if guard_spam_commands(message.from_user.id):
+        if guard_spam_commands(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
                 return await bot.delete_message(message.chat.id, message.message_id)
 
@@ -262,7 +262,7 @@ async def kick_command(message: types.Message):
 @dp.message_handler(commands=['fanta'])
 async def fanta_command(message: types.Message):
     try:
-        if guard_spam_commands(message.from_user.id):
+        if guard_spam_commands(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
                 return await bot.delete_message(message.chat.id, message.message_id)
 
@@ -290,7 +290,7 @@ async def hand_command(message: types.Message):
         if message.chat.id == message.from_user.id:
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
-        if guard_spam_commands(message.from_user.id):
+        if guard_spam_commands(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
                 return await bot.delete_message(message.chat.id, message.message_id)
 
@@ -320,7 +320,7 @@ async def crosses_command(message: types.Message):
         if message.chat.id == message.from_user.id:
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
-        if guard_spam_commands(message.from_user.id):
+        if guard_spam_commands(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
                 return await bot.delete_message(message.chat.id, message.message_id)
 
@@ -371,7 +371,7 @@ async def crosses_command(message: types.Message):
         if message.chat.id == message.from_user.id:
             return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
 
-        if guard_spam_commands(message.from_user.id):
+        if guard_spam_commands(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
                 return await bot.delete_message(message.chat.id, message.message_id)
 
@@ -417,7 +417,7 @@ async def associations_command(message: types.Message):
         if not await is_admin_group(message.chat.id, bot.id):
             return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
 
-        if guard_spam_commands(message.from_user.id):
+        if guard_spam_commands(message.chat.id):
             if await is_admin_group(message.chat.id, bot.id):
                 return await bot.delete_message(message.chat.id, message.message_id)
 

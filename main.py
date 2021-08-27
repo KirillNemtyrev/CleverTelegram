@@ -436,6 +436,17 @@ async def zonk_command(message: types.Message):
                     
                 return await bot.edit_message_caption(chat_id=message.chat.id, message_id=get_info.message_id, caption="🍍 *Зонк*\nНедостаточно игроков..", parse_mode="Markdown", reply_markup=None)
 
+        await bot.delete_message(message.chat.id, get_info.message_id)
+        players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/zonk")
+        temp = choice(players)
+        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/zonk/" + temp) as player:
+            result = player.read().split("|")
+
+        buttons  = [types.InlineKeyboardButton(text='Кость', callback_data="Бросить кость"),types.InlineKeyboardButton(text='Пасс', callback_data="Пасс")] 
+        keyboard = types.InlineKeyboardMarkup(row_width=2)
+        keyboard.add(*buttons)
+        await message.answer("🍍 *Зонк*\nИгра начинается!\n\nПервым ходит: [%s](tg://user?id=%d)" % (result[0], int(temp.replace(".txt", ""))), parse_mode="Markdown", reply_markup=keyboard)
+
     except Exception as e:
         print(repr(e))
 
@@ -561,6 +572,7 @@ async def associations_command(message: types.Message):
                 game_message += "[%s](tg://user?id=%d) - ⚡ %d очков.\n" % (info.user.first_name, int(item.replace(".txt", "")), score)
 
                 if score > max:
+                    max = score
                     win_message = "\nПобедитель:\n[%s](tg://user?id=%d) - ⚡ %d очков" % (info.user.first_name, int(item.replace(".txt", "")), score)
 
         return await bot.send_message(message.chat.id, game_message + win_message, parse_mode="Markdown")   
@@ -701,7 +713,7 @@ async def check_all_messages(message):
                                         index = int(temp.replace(".txt", ""))
                                         info = await bot.get_chat_member(message.chat.id, int(temp.replace(".txt", "")))
 
-                                await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑\n- Назвал больше всех городов(%d)" % (info.user.first_name, index, max), parse_mode="Markdown")
+                                await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n👑 [%s](tg://user?id=%d) - Назвал больше всех городов(%d)" % (info.user.first_name, index, max), parse_mode="Markdown")
                             except Exception as e:
                                 await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
                                 for temp in players: 
@@ -839,8 +851,8 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             keyboard.add(*buttons)
 
             CHOSEE = random.randint(0, 2)
-            crosses_player_index = callback_query.message.from_user.id
-            crosses_player_name = callback_query.message.from_user.first_name
+            crosses_player_index = callback_query.from_user.id
+            crosses_player_name = callback_query.from_user.first_name
             zero_player_index = callback_query.message.reply_to_message.from_user.id
             zero_player_name = callback_query.message.reply_to_message.from_user.first_name
             if CHOSEE == 1:

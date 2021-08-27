@@ -850,12 +850,12 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             keyboard = types.InlineKeyboardMarkup(row_width=3)
             keyboard.add(*buttons)
 
-            CHOSEE = random.randint(0, 2)
+            CHOSEE = random.randint(0, 100)
             crosses_player_index = callback_query.from_user.id
             crosses_player_name = callback_query.from_user.first_name
             zero_player_index = callback_query.message.reply_to_message.from_user.id
             zero_player_name = callback_query.message.reply_to_message.from_user.first_name
-            if CHOSEE == 1:
+            if CHOSEE >= 50:
                 crosses_player_index = callback_query.message.reply_to_message.from_user.id
                 crosses_player_name = callback_query.message.reply_to_message.from_user.first_name
                 zero_player_index = callback_query.from_user.id

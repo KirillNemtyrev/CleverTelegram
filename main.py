@@ -1,6 +1,8 @@
+from functools import cache
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
+from aiogram.utils.markdown import hide_link
 
 import random
 from random import choice
@@ -62,7 +64,11 @@ def verification_dirs_chat(chat_id):
         if not os.path.exists(path):
             os.mkdir(path)
 
-        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "charade")
+        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "cities")
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "zonk")
         if not os.path.exists(path):
             os.mkdir(path)
     except Exception as e:
@@ -99,13 +105,21 @@ def remove_dirs_chat(chat_id):
                         os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/hand/" + temp)
                 os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/hand")
 
-            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "charade")
+            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "cities")
             if os.path.exists(path):
-                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/charade")
+                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/cities")
                 if files:
                     for temp in files:
-                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/charade/" + temp)
-                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/charade")
+                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/cities/" + temp)
+                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/cities")
+
+            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "zonk")
+            if os.path.exists(path):
+                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/zonk")
+                if files:
+                    for temp in files:
+                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/zonk/" + temp)
+                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/zonk")
 
             files = os.listdir(os.getcwd() + "/chats/" + str(chat_id))
             if files:
@@ -318,10 +332,6 @@ async def hand_command(message: types.Message):
         keyboard.add(*buttons)
 
         get_info = await message.reply("🍍 [%s](tg://user?id=%d) кидает вызов в камень-ножницы-бумага" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)
-        
-        await asyncio.sleep(10)
-        if not os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/hand/" + str(get_info.message_id) + ".txt"):
-            await bot.edit_message_text(chat_id=message.chat.id, message_id=get_info.message_id, text="🍍 Никто не хочет играть:(")
     except Exception as e:
         print(repr(e)) 
 
@@ -353,9 +363,6 @@ async def crosses_command(message: types.Message):
         keyboard.add(*buttons)
 
         get_info = await message.reply("🍍 [%s](tg://user?id=%d) хочет поиграть в крестики-нолики" % (message.from_user.first_name,message.from_user.id), parse_mode="Markdown", reply_markup=keyboard)        
-        await asyncio.sleep(10)
-        if not os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/crosses/" + str(get_info.message_id) + ".txt"):
-            await bot.edit_message_text(chat_id=message.chat.id, message_id=get_info.message_id, text="🍍 Никто не хочет играть:(")
     except Exception as e:
         print(repr(e))
 
@@ -380,6 +387,57 @@ def progress_to_win_crosses(check_pos):
     elif check_pos[0] != 0 and check_pos[1] != 0 and check_pos[2] != 0 and check_pos[3] != 0 and check_pos[4] != 0 and check_pos[5] != 0 and check_pos[6] != 0 and check_pos[7] != 0 and check_pos[8] != 0:
         return 4
     return False
+
+# Command: zonk
+@dp.message_handler(commands=['zonk'])
+async def zonk_command(message: types.Message):
+    try:
+        if message.chat.id == message.from_user.id:
+            return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
+
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
+            not_spam_commands[message.chat.id] = time.time()
+
+        if is_game_in_chat(message.chat.id):
+            if await is_admin_group(message.chat.id, bot.id):
+                return await bot.delete_message(message.chat.id, message.message_id)
+            return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
+
+        verification_dirs_chat(message.chat.id)
+
+        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
+            game.write("ZONK|REGISTER")
+
+        buttons  = [types.InlineKeyboardButton(text='Присоединиться ⚔', callback_data="Кости")] 
+        keyboard = types.InlineKeyboardMarkup(row_width=1)
+        keyboard.add(*buttons)
+
+        image = open(os.getcwd() + "/info/zonk_help.jpg", "rb")
+        get_info = await bot.send_photo(chat_id=message.chat.id, photo=image,caption="🍍 *Зонк*\n\nВедётся набор участников\n\n⌛ Игра начнется через *60 секунд*", parse_mode="Markdown", reply_markup=keyboard)      
+        await asyncio.sleep(60)
+        if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
+            with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                result = game.read().split("|")
+
+            if result[1] != "REGISTER":
+                return True
+
+            players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/zonk")
+            if len(players) <= 1:
+                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
+                for temp in players:
+                    os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/zonk/" + temp)
+                    
+                return await bot.edit_message_caption(chat_id=message.chat.id, message_id=get_info.message_id, caption="🍍 *Зонк*\nНедостаточно игроков..", parse_mode="Markdown", reply_markup=None)
+
+    except Exception as e:
+        print(repr(e))
 
 # Command: cities
 @dp.message_handler(commands=['cities'])
@@ -489,19 +547,23 @@ async def associations_command(message: types.Message):
             return await bot.send_message(message.chat.id, "🍍 *Ассоциации*\nИгра завершена!", parse_mode="Markdown")
 
         game_message = "🍍 *Ассоциации*\nИгра завершена!\n\nУчастники:\n"
+        win_message = ""
         count = 1
+        max = 0
 
         for item in dirs:
             if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + item):
                 with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + item) as player:
                     score = int(player.read())
-
-                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + item)
+                    
                 info = await bot.get_chat_member(message.chat.id, int(item.replace(".txt", "")))
-                game_message += "%d. [%s](tg://user?id=%d) - ⚡ %d очков.\n" % (count, info.user.first_name, int(item.replace(".txt", "")), score)
-                count += 1
+                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + item)
+                game_message += "[%s](tg://user?id=%d) - ⚡ %d очков.\n" % (info.user.first_name, int(item.replace(".txt", "")), score)
 
-        return await bot.send_message(message.chat.id, game_message, parse_mode="Markdown")   
+                if score > max:
+                    win_message = "\nПобедитель:\n[%s](tg://user?id=%d) - ⚡ %d очков" % (info.user.first_name, int(item.replace(".txt", "")), score)
+
+        return await bot.send_message(message.chat.id, game_message + win_message, parse_mode="Markdown")   
 
     except Exception as e:
         print(repr(e))  
@@ -605,6 +667,16 @@ async def check_all_messages(message):
 
                     await message.reply("🍍 *Города*\n\n*🌍 %s\n%s %s*\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, choice(send_prevision), previsione, last_letter), parse_mode="Markdown")
                     
+                    if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + str(message.from_user.id) + ".txt"):
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + str(message.from_user.id) + ".txt") as player:
+                            score = int(player.read())
+
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                            player.write(str(score + 1))
+                    else:
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                            player.write(str(1))
+
                     await asyncio.sleep(60)
                     if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
 
@@ -615,11 +687,25 @@ async def check_all_messages(message):
                             os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
                             os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
 
+                            players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities")
                             try:
-                                info = await bot.get_chat_member(message.chat.id, message.from_user.id)
-                                await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑" % (info.user.first_name, message.from_user.id), parse_mode="Markdown")
+                                max = 0
+                                for temp in players:
+                                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + temp) as player:
+                                        score = int(player.read())
+                                        
+                                    os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + temp)
+
+                                    if score > max:
+                                        max = score
+                                        index = int(temp.replace(".txt", ""))
+                                        info = await bot.get_chat_member(message.chat.id, int(temp.replace(".txt", "")))
+
+                                await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n[%s](tg://user?id=%d) - 👑\n- Назвал больше всех городов(%d)" % (info.user.first_name, index, max), parse_mode="Markdown")
                             except Exception as e:
                                 await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
+                                for temp in players: 
+                                    os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + temp)
                 except Exception as e:
                     pass
 
@@ -663,6 +749,29 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             message = "🍍 *Помощь*\n\nАдминистративные команды:\n/mute - Заглушить на 30 мин\n/kick - Кикнуть игрока"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
 
+        elif code == "Кости":
+
+            if os.path.isfile(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/zonk/" + str(callback_query.from_user.id) + ".txt"):
+                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы уже присоединились к игре..", show_alert=True)
+
+            with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/zonk/" + str(callback_query.from_user.id) + ".txt", "w+") as player:
+                player.write("%s|0" % (callback_query.from_user.first_name))
+
+            players = os.listdir(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/zonk")
+
+            game_message = "🍍 *Зонк*\nОзнакомьтесь с правилами!\n\nУчастники:\n"
+            for temp in players:
+                with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/zonk/" + temp) as player:
+                    result = player.read().split("|")
+
+                game_message += "[%s](tg://user?id=%d)\n" % (result[0], int(temp.replace(".txt", "")))
+            
+            game_message += "\nИтого *%d* чел." % len(players)
+
+            buttons  = [types.InlineKeyboardButton(text='Присоединиться ⚔', callback_data="Кости")] 
+            keyboard = types.InlineKeyboardMarkup(row_width=1)
+            keyboard.add(*buttons)
+            return await bot.edit_message_caption(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, caption=game_message, parse_mode="Markdown",reply_markup=keyboard)
         elif code == "Рука":
 
             if not callback_query.message.reply_to_message:
@@ -729,11 +838,22 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             keyboard = types.InlineKeyboardMarkup(row_width=3)
             keyboard.add(*buttons)
 
-            message = "🍍 Игра началась!\n⌛ На ход: *60 секунд*\n\n❌ [%s](tg://user?id=%d) ходит крестиками\n⭕ [%s](tg://user?id=%d) ходит ноликами\n\nПервым ходит: [%s](tg://user?id=%d) ❌" % (callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.from_user.first_name, callback_query.from_user.id, callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
+            CHOSEE = random.randint(0, 2)
+            crosses_player_index = callback_query.message.from_user.id
+            crosses_player_name = callback_query.message.from_user.first_name
+            zero_player_index = callback_query.message.reply_to_message.from_user.id
+            zero_player_name = callback_query.message.reply_to_message.from_user.first_name
+            if CHOSEE == 1:
+                crosses_player_index = callback_query.message.reply_to_message.from_user.id
+                crosses_player_name = callback_query.message.reply_to_message.from_user.first_name
+                zero_player_index = callback_query.from_user.id
+                zero_player_name = callback_query.from_user.first_name
+
+            message = "🍍 Игра началась!\n⌛ На ход: *60 секунд*\n\n❌ [%s](tg://user?id=%d) ходит крестиками\n⭕ [%s](tg://user?id=%d) ходит ноликами\n\nПервым ходит: [%s](tg://user?id=%d) ❌" % (crosses_player_name, crosses_player_index, zero_player_name, zero_player_index, crosses_player_name, crosses_player_index)
             await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=keyboard)
-    
+            
             with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt", "w+") as game:
-                game.write("%d|%s|%d|%s|CROSS|1|0|0|0|0|0|0|0|0|0" % (callback_query.message.reply_to_message.from_user.id, callback_query.message.reply_to_message.from_user.first_name, callback_query.from_user.id, callback_query.from_user.first_name))
+                game.write("%d|%s|%d|%s|CROSS|1|0|0|0|0|0|0|0|0|0" % (crosses_player_index, crosses_player_name, zero_player_index, zero_player_name))
 
             await asyncio.sleep(60)
             if os.path.isfile(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt"):
@@ -741,7 +861,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                     game_split = game.read().split("|")
 
                 if int(game_split[5]) == 1:
-                    message = "🍍 *Игра закончилась!*\n\nУчастники:\n❌ [%s](tg://user?id=%d) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%d)" % (callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.from_user.first_name, callback_query.from_user.id)
+                    message = "🍍 *Игра закончилась!*\n\nУчастники:\n❌ [%s](tg://user?id=%d) - Не сделал(-а) ход\n⭕ [%s](tg://user?id=%d)" % (crosses_player_name, crosses_player_index, zero_player_name, zero_player_index)
                     return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
 
         elif code == "1" or code == "2" or code == "3" or code == "4" or code == "5" or code == "6" or code == "7" or code == "8" or code == "9":

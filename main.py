@@ -68,9 +68,6 @@ def verification_dirs_chat(chat_id):
         if not os.path.exists(path):
             os.mkdir(path)
 
-        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "zonk")
-        if not os.path.exists(path):
-            os.mkdir(path)
     except Exception as e:
         print(repr(e))
 
@@ -112,14 +109,6 @@ def remove_dirs_chat(chat_id):
                     for temp in files:
                         os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/cities/" + temp)
                 os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/cities")
-
-            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "zonk")
-            if os.path.exists(path):
-                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/zonk")
-                if files:
-                    for temp in files:
-                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/zonk/" + temp)
-                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/zonk")
 
             files = os.listdir(os.getcwd() + "/chats/" + str(chat_id))
             if files:
@@ -387,68 +376,6 @@ def progress_to_win_crosses(check_pos):
     elif check_pos[0] != 0 and check_pos[1] != 0 and check_pos[2] != 0 and check_pos[3] != 0 and check_pos[4] != 0 and check_pos[5] != 0 and check_pos[6] != 0 and check_pos[7] != 0 and check_pos[8] != 0:
         return 4
     return False
-
-# Command: zonk
-@dp.message_handler(commands=['zonk'])
-async def zonk_command(message: types.Message):
-    try:
-        if message.chat.id == message.from_user.id:
-            return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
-
-        if message.chat.id not in not_spam_commands:
-            not_spam_commands[message.chat.id] = time.time()
-        else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
-                if await is_admin_group(message.chat.id, bot.id):
-                    return await bot.delete_message(message.chat.id, message.message_id)
-                return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
-            not_spam_commands[message.chat.id] = time.time()
-
-        if is_game_in_chat(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
-            return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
-
-        verification_dirs_chat(message.chat.id)
-
-        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
-            game.write("ZONK|REGISTER")
-
-        buttons  = [types.InlineKeyboardButton(text='Присоединиться ⚔', callback_data="Кости")] 
-        keyboard = types.InlineKeyboardMarkup(row_width=1)
-        keyboard.add(*buttons)
-
-        image = open(os.getcwd() + "/info/zonk_help.jpg", "rb")
-        get_info = await bot.send_photo(chat_id=message.chat.id, photo=image,caption="🍍 *Зонк*\n\nВедётся набор участников\n\n⌛ Игра начнется через *60 секунд*", parse_mode="Markdown", reply_markup=keyboard)      
-        await asyncio.sleep(60)
-        if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
-            with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
-                result = game.read().split("|")
-
-            if result[1] != "REGISTER":
-                return True
-
-            players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/zonk")
-            if len(players) <= 1:
-                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
-                for temp in players:
-                    os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/zonk/" + temp)
-                    
-                return await bot.edit_message_caption(chat_id=message.chat.id, message_id=get_info.message_id, caption="🍍 *Зонк*\nНедостаточно игроков..", parse_mode="Markdown", reply_markup=None)
-
-        await bot.delete_message(message.chat.id, get_info.message_id)
-        players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/zonk")
-        temp = choice(players)
-        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/zonk/" + temp) as player:
-            result = player.read().split("|")
-
-        buttons  = [types.InlineKeyboardButton(text='Кость', callback_data="Бросить кость"),types.InlineKeyboardButton(text='Пасс', callback_data="Пасс")] 
-        keyboard = types.InlineKeyboardMarkup(row_width=2)
-        keyboard.add(*buttons)
-        await message.answer("🍍 *Зонк*\nИгра начинается!\n\nПервым ходит: [%s](tg://user?id=%d)" % (result[0], int(temp.replace(".txt", ""))), parse_mode="Markdown", reply_markup=keyboard)
-
-    except Exception as e:
-        print(repr(e))
 
 # Command: cities
 @dp.message_handler(commands=['cities'])
@@ -761,29 +688,6 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             message = "🍍 *Помощь*\n\nАдминистративные команды:\n/mute - Заглушить на 30 мин\n/kick - Кикнуть игрока"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
 
-        elif code == "Кости":
-
-            if os.path.isfile(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/zonk/" + str(callback_query.from_user.id) + ".txt"):
-                return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Вы уже присоединились к игре..", show_alert=True)
-
-            with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/zonk/" + str(callback_query.from_user.id) + ".txt", "w+") as player:
-                player.write("%s|0" % (callback_query.from_user.first_name))
-
-            players = os.listdir(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/zonk")
-
-            game_message = "🍍 *Зонк*\nОзнакомьтесь с правилами!\n\nУчастники:\n"
-            for temp in players:
-                with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/zonk/" + temp) as player:
-                    result = player.read().split("|")
-
-                game_message += "[%s](tg://user?id=%d)\n" % (result[0], int(temp.replace(".txt", "")))
-            
-            game_message += "\nИтого *%d* чел." % len(players)
-
-            buttons  = [types.InlineKeyboardButton(text='Присоединиться ⚔', callback_data="Кости")] 
-            keyboard = types.InlineKeyboardMarkup(row_width=1)
-            keyboard.add(*buttons)
-            return await bot.edit_message_caption(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, caption=game_message, parse_mode="Markdown",reply_markup=keyboard)
         elif code == "Рука":
 
             if not callback_query.message.reply_to_message:

@@ -551,14 +551,19 @@ async def check_all_messages(message):
 
             if "CITIES" in game_text:
                 try:
-                    mgr = owm.weather_manager()
-                    observation = mgr.weather_at_place(message.text)
-                    status = observation.weather
-                    temperature = status.temperature('celsius')['temp']
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                        records = game.read().split("|")
 
                     city = message.text.upper() 
                     first_letter = city[:1]
                     last_letter = city.replace(city[:-1], "")
+
+                    if int(records[2]) == message.from_user.id or first_letter != records[1]:
+                        return True
+                    mgr = owm.weather_manager()
+                    observation = mgr.weather_at_place(message.text)
+                    status = observation.weather
+                    temperature = status.temperature('celsius')['temp']
 
                     for i in range(len(city)):
                         if last_letter in letters:
@@ -566,12 +571,6 @@ async def check_all_messages(message):
                         
                         elif last_letter not in letters:
                             last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
-
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
-                        records = game.read().split("|")
-
-                    if int(records[2]) == message.from_user.id or first_letter != records[1]:
-                        return True
 
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt") as city:
                         cities = city.read()
@@ -602,7 +601,7 @@ async def check_all_messages(message):
                     "В Яндексе написано что щас там",
                     "Мой градусник врать не будет!\nСейчас там",
                     "Угу, там вроде сейчас",
-                    "Красивое название!\nПогода там"]   
+                    "Красивое название!\nСейчас там"]   
 
                     await message.reply("🍍 *Города*\n\n*🌍 %s\n%s %s*\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, choice(send_prevision), previsione, last_letter), parse_mode="Markdown")
                     
@@ -697,7 +696,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                 return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Это ваш вызов...", show_alert=True)
 
             with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt", "w+") as game:
-                game.write("%d|%s|%d|%s|None|None" % (callback_query.message.reply_to_message.from_user.id, callback_query.message.reply_to_message.from_user.first_name, callback_query.from_user.id, callback_query.from_user.first_name))
+                game.write("%d|%s|%d|%s|None|None" % (callback_query.from_user.id, callback_query.from_user.first_name, callback_query.message.reply_to_message.from_user.id, callback_query.message.reply_to_message.from_user.first_name))
 
             buttons = [types.InlineKeyboardButton(text="Камень", callback_data="Камень"),types.InlineKeyboardButton(text="Ножницы", callback_data="Ножницы"),types.InlineKeyboardButton(text="Бумага", callback_data="Бумага")]
             keyboard = types.InlineKeyboardMarkup(row_width=1)

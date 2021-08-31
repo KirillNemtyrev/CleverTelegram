@@ -263,36 +263,6 @@ async def kick_command(message: types.Message):
         print(repr(e))
 
 # Games
-# Command: Fanta
-@dp.message_handler(commands=['fanta'])
-async def fanta_command(message: types.Message):
-    try:
-        if message.chat.id not in not_spam_commands:
-            not_spam_commands[message.chat.id] = time.time()
-        else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
-                if await is_admin_group(message.chat.id, bot.id):
-                    return await bot.delete_message(message.chat.id, message.message_id)
-                return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
-            not_spam_commands[message.chat.id] = time.time()
-
-        if is_game_in_chat(message.chat.id):
-            if await is_admin_group(message.chat.id, bot.id):
-                return await bot.delete_message(message.chat.id, message.message_id)
-            return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
-
-        buttons  = [types.InlineKeyboardButton(text='Дальше', callback_data="Дальше")] 
-        keyboard = types.InlineKeyboardMarkup(row_width=1)
-        keyboard.add(*buttons)
-
-        with open("info/fanta_message.txt", encoding="utf8") as fanta:
-            mission = fanta.read().replace("\\n", "\n").split("|")
-
-        select_mission = random.randint(0,len(mission)) - 1
-        await message.reply("🍍 %s" % mission[select_mission], parse_mode="Markdown", reply_markup=keyboard)
-    except Exception as e:
-        print(repr(e)) 
-
 # Command: hand
 @dp.message_handler(commands=['hand'])
 async def hand_command(message: types.Message):
@@ -679,7 +649,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры в группе:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/cities - Игра в Города\n/hand - Камень-Ножницы-Бумага\n\n🍍 *Остальное:*\n/fanta - Игра для 'культурной' посиделки 🔞"
+            message = "🍍 *Игры:*\n/crosses - Игра крестики-нолики\n/associations - Игра в ассоциации\n/cities - Игра в Города\n/hand - Камень-Ножницы-Бумага"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":
@@ -856,17 +826,6 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 
             return await bot.answer_callback_query(callback_query_id=callback_query.id, text="🍍 Позиция уже занята!", show_alert=True)
 
-        elif code == "Дальше":
-
-            buttons  = [types.InlineKeyboardButton(text='Дальше', callback_data="Дальше")] 
-            keyboard = types.InlineKeyboardMarkup(row_width=1)
-            keyboard.add(*buttons)
-
-            with open("info/fanta_message.txt", encoding="utf8") as fanta:
-                mission = fanta.read().replace("\\n", "\n").split("|")
-
-            select_mission = random.randint(0,len(mission)) - 1
-            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text="🍍 %s" % mission[select_mission], parse_mode="Markdown",reply_markup=keyboard)
     except Exception as e:
         print(repr(e)) 
 

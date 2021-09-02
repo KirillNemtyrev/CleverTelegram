@@ -529,8 +529,8 @@ async def check_all_messages(message):
                     if int(records[2]) == message.from_user.id or first_letter != records[1]:
                         return True
 
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt") as city:
-                        cities = city.read()
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt") as file:
+                        cities = file.read()
 
                     result = cities.split(" ")
                     for temp in result:
@@ -540,14 +540,18 @@ async def check_all_messages(message):
                     mgr = owm.weather_manager()
                     mgr.weather_at_place(message.text)
 
-                    count = 0
                     for i in range(len(city)):
-                        if last_letter not in letters:
-                            last_letter = city.replace(city[:len(city) - 2 - count], "").replace(last_letter, "")
-                            count += 1
+                        if last_letter in letters:
+                            break
 
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt", "+w") as city:
-                        city.write(cities + message.text + " ")
+                        else:
+                            if len(last_letter) != 1:
+                                last_letter = last_letter[:1]
+                            else:
+                                last_letter = city.replace(city[:len(city) - 2 - i], "").replace(last_letter, "")
+
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt", "+w") as file:
+                        file.write(cities + message.text + " ")
 
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
                         game.write("TITLES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))

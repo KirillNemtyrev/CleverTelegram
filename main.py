@@ -64,7 +64,7 @@ def verification_dirs_chat(chat_id):
         if not os.path.exists(path):
             os.mkdir(path)
 
-        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "cities")
+        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "titles")
         if not os.path.exists(path):
             os.mkdir(path)
 
@@ -102,13 +102,13 @@ def remove_dirs_chat(chat_id):
                         os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/hand/" + temp)
                 os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/hand")
 
-            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "cities")
+            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "titles")
             if os.path.exists(path):
-                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/cities")
+                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/titles")
                 if files:
                     for temp in files:
-                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/cities/" + temp)
-                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/cities")
+                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/titles/" + temp)
+                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/titles")
 
             files = os.listdir(os.getcwd() + "/chats/" + str(chat_id))
             if files:
@@ -347,8 +347,8 @@ def progress_to_win_crosses(check_pos):
         return 4
     return False
 
-# Command: cities
-@dp.message_handler(commands=['cities'])
+# Command: titles
+@dp.message_handler(commands=['titles'])
 async def crosses_command(message: types.Message):
     try:
         if message.chat.id == message.from_user.id:
@@ -375,12 +375,12 @@ async def crosses_command(message: types.Message):
         first_letter = choice(letters)
 
         with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
-            game.write("CITIES|%s|0|0" % first_letter)
-            open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w")
+            game.write("TITLES|%s|0|0" % first_letter)
+            open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt", "+w")
 
         await bot.delete_message(message.chat.id, message.message_id)
 
-        get_info = await message.answer("🍍 *Города*\nИгра города запущена!\n\n📌 Бот пишет букву на которую нужно написать город\nСледующий ход будет на последнию букву города\nСоответственно игрок пропустит следующий ход\n\nНапишите город на букву: *%s*" % first_letter, parse_mode="Markdown")        
+        get_info = await message.answer("🍍 *Названия местностей*\n\n📌 Бот пишет букву на которую нужно написать название местности\nСледующий ход будет на последнию букву названия\nСоответственно игрок пропустит следующий ход\n\nИ так начнём: *%s*" % first_letter, parse_mode="Markdown")        
         
         await asyncio.sleep(60)
         if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
@@ -389,7 +389,7 @@ async def crosses_command(message: types.Message):
 
             if record[2] == "0":
                 os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
-                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
+                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt")
                 return await bot.delete_message(message.chat.id, get_info.message_id)
 
     except Exception as e:
@@ -519,7 +519,7 @@ async def check_all_messages(message):
             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                 game_text = game.read()
 
-            if "CITIES" in game_text:
+            if "TITLES" in game_text:
                 try:
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                         records = game.read().split("|")
@@ -530,59 +530,39 @@ async def check_all_messages(message):
 
                     if int(records[2]) == message.from_user.id or first_letter != records[1]:
                         return True
+
                     mgr = owm.weather_manager()
                     observation = mgr.weather_at_place(message.text)
                     status = observation.weather
-                    temperature = status.temperature('celsius')['temp']
 
                     for i in range(len(city)):
-                        if last_letter in letters:
-                            break
-                        
-                        elif last_letter not in letters:
-                            last_letter = city.replace(city[:len(city) - 2], "").replace(last_letter, "")
+                        if last_letter not in letters:
+                            last_letter = city.replace(city[:len(city) - 2 + i], "").replace(last_letter, "")
 
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt") as city:
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt") as city:
                         cities = city.read()
 
                     result = cities.split(" ")
                     for temp in result:
                         if temp.lower() == message.text.lower():
-                            return await message.reply("🍍 *Города*\n\nЭтот город уже был!", parse_mode="Markdown")
+                            return await message.reply("🍍 *Местность*\n\nЭта местность уже была!", parse_mode="Markdown")
 
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt", "+w") as city:
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt", "+w") as city:
                         city.write(cities + message.text + " ")
 
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
-                        game.write("CITIES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
+                        game.write("TITLES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
 
-                    if temperature <= 10:
-                        previsione = "прохладно"
-                    elif temperature > 10 and temperature <= 20:
-                        previsione = "тепло"
-                    else:
-                        previsione = "жарко" 
-
-                    send_prevision = ["Хороший ответ!\nТам кстате сейчас",
-                    "Хороший ход\nЕсли я не ошибаюсь, а я не ошибаюсь, там сейчас",
-                    "Хмм.. Я недавно был там, там вроде",
-                    "Ух ты, думал не вспомнишь\nТам кстате щас",
-                    "Я загуглил этот город\nТам сейчас",
-                    "В Яндексе написано что щас там",
-                    "Мой градусник врать не будет!\nСейчас там",
-                    "Угу, там вроде сейчас",
-                    "Красивое название!\nСейчас там"]   
-
-                    await message.reply("🍍 *Города*\n\n*🌍 %s\n%s %s*\n\n📌 Напишите город на букву - *%s*\n⌛ Ход: *60 секунд*" % (message.text, choice(send_prevision), previsione, last_letter), parse_mode="Markdown")
+                    await message.reply("🍍 *Местность*\n\n*🌍 %s*\n\n📌 Буква - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
                     
-                    if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + str(message.from_user.id) + ".txt"):
-                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + str(message.from_user.id) + ".txt") as player:
+                    if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + str(message.from_user.id) + ".txt"):
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + str(message.from_user.id) + ".txt") as player:
                             score = int(player.read())
 
-                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + str(message.from_user.id) + ".txt" , "+w") as player:
                             player.write(str(score + 1))
                     else:
-                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                        with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + str(message.from_user.id) + ".txt" , "+w") as player:
                             player.write(str(1))
 
                     await asyncio.sleep(60)
@@ -593,27 +573,27 @@ async def check_all_messages(message):
 
                         if int(record[2]) == message.from_user.id and int(record[3]) == int(records[3]) + 1:
                             os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
-                            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities.txt")
+                            os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt")
 
-                            players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities")
+                            players = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles")
                             try:
                                 max = 0
                                 for temp in players:
-                                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + temp) as player:
+                                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + temp) as player:
                                         score = int(player.read())
                                         
-                                    os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + temp)
+                                    os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + temp)
 
                                     if score > max:
                                         max = score
                                         index = int(temp.replace(".txt", ""))
                                         info = await bot.get_chat_member(message.chat.id, int(temp.replace(".txt", "")))
 
-                                await message.answer("🍍 *Города*\nИгра закончена!\n\nПобедитель:\n👑 [%s](tg://user?id=%d) - Назвал больше всех городов(%d)" % (info.user.first_name, index, max), parse_mode="Markdown")
+                                await message.answer("🍍 *Местность*\nИгра закончена!\n\nПобедитель:\n👑 [%s](tg://user?id=%d) - Назвал(-а) больше всех местностей(%d)" % (info.user.first_name, index, max), parse_mode="Markdown")
                             except Exception as e:
-                                await message.answer("🍍 *Города*\nИгра закончена!\n\nБольше никто не написал город", parse_mode="Markdown")
+                                await message.answer("🍍 *Местность*\nИгра закончена!", parse_mode="Markdown")
                                 for temp in players: 
-                                    os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/cities/" + temp)
+                                    os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + temp)
                 except Exception as e:
                     pass
 
@@ -649,7 +629,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры:*\n/associations - Игра в ассоциации\n/crosses - Игра крестики-нолики\n/cities - Игра в Города\n/hand - Камень-Ножницы-Бумага"
+            message = "🍍 *Игры:*\n/associations - Игра в ассоциации\n/crosses - Игра крестики-нолики\n/hand - Камень-Ножницы-Бумага\n/titles - Названия местностей"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":
@@ -848,8 +828,8 @@ if __name__ == "__main__":
                 for item in players:
                     os.remove(os.getcwd() + "/chats/" + temp + "/associations/" + item)
 
-            if "CITIES" in result:
-                os.remove(os.getcwd() + "/chats/" + temp + "/cities.txt")
+            if "TITLES" in result:
+                os.remove(os.getcwd() + "/chats/" + temp + "/titles.txt")
 
             os.remove(os.getcwd() + "/chats/" + temp + "/info.txt")
         except Exception as e:

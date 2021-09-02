@@ -586,7 +586,7 @@ async def check_all_messages(message):
                                         index = int(temp.replace(".txt", ""))
                                         info = await bot.get_chat_member(message.chat.id, int(temp.replace(".txt", "")))
 
-                                await message.answer("🍍 *Местность*\nИгра закончена!\n\nПобедитель:\n👑 [%s](tg://user?id=%d) - Назвал(-а) больше всех местностей(%d)" % (info.user.first_name, index, max), parse_mode="Markdown")
+                                await message.answer("🍍 *Местность*\nИгра закончена!\n\nПобедитель:\n👑 [%s](tg://user?id=%d) - назвал(-а) больше всех местностей" % (info.user.first_name, index), parse_mode="Markdown")
                             except Exception as e:
                                 await message.answer("🍍 *Местность*\nИгра закончена!", parse_mode="Markdown")
                                 for temp in players: 

@@ -378,7 +378,7 @@ async def crosses_command(message: types.Message):
 
         await bot.delete_message(message.chat.id, message.message_id)
 
-        get_info = await message.answer("🍍 *Названия местностей*\n\n📌 Бот пишет букву на которую нужно написать название местности\nСледующий ход будет на последнию букву названия\nСоответственно игрок пропустит следующий ход\n\nИ так начнём, буква: *%s*" % first_letter, parse_mode="Markdown")        
+        get_info = await message.answer("🍍 *Названия местностей*\n\n📌 Бот пишет букву на которую нужно написать название местности\nСледующий ход будет на последнию букву названия\nНазвания стран,городов,штатов и др.\nСоответственно игрок пропустит следующий ход\n\nИ так начнём, буква: *%s*" % first_letter, parse_mode="Markdown")        
         
         await asyncio.sleep(60)
         if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
@@ -532,7 +532,7 @@ async def check_all_messages(message):
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt") as file:
                         cities = file.read()
 
-                    result = cities.split(" ")
+                    result = cities.split(",")
                     for temp in result:
                         if temp.lower() == message.text.lower():
                             return await message.reply("🍍 *Местность*\n\nЭта местность уже была!", parse_mode="Markdown")
@@ -551,7 +551,7 @@ async def check_all_messages(message):
                                 last_letter = city.replace(city[:len(city) - 2 - i], "").replace(last_letter, "")
 
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt", "+w") as file:
-                        file.write(cities + message.text + " ")
+                        file.write(cities + message.text + ",")
 
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
                         game.write("TITLES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))

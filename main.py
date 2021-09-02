@@ -378,7 +378,7 @@ async def crosses_command(message: types.Message):
 
         await bot.delete_message(message.chat.id, message.message_id)
 
-        get_info = await message.answer("🍍 *Названия местностей*\n\n📌 Бот пишет букву на которую нужно написать название местности\nСледующий ход будет на последнию букву названия\nСоответственно игрок пропустит следующий ход\n\nИ так начнём: *%s*" % first_letter, parse_mode="Markdown")        
+        get_info = await message.answer("🍍 *Названия местностей*\n\n📌 Бот пишет букву на которую нужно написать название местности\nСледующий ход будет на последнию букву названия\nСоответственно игрок пропустит следующий ход\n\nИ так начнём, буква: *%s*" % first_letter, parse_mode="Markdown")        
         
         await asyncio.sleep(60)
         if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt"):
@@ -531,7 +531,6 @@ async def check_all_messages(message):
 
                     mgr = owm.weather_manager()
                     observation = mgr.weather_at_place(message.text)
-                    status = observation.weather
 
                     for i in range(len(city)):
                         if last_letter not in letters:
@@ -551,7 +550,7 @@ async def check_all_messages(message):
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
                         game.write("TITLES|%s|%d|%d" % (last_letter, message.from_user.id, int(records[3]) + 1))
 
-                    await message.reply("🍍 *Местность*\n\n*🌍 %s*\n\n📌 Буква - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
+                    await message.reply("🍍 *Местность - %s*\n\n📌 Буква - *%s*\n⌛ Ход: *60 секунд*" % (message.text, last_letter), parse_mode="Markdown")
                     
                     if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + str(message.from_user.id) + ".txt"):
                         with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles/" + str(message.from_user.id) + ".txt") as player:

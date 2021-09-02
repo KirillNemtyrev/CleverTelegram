@@ -530,11 +530,11 @@ async def check_all_messages(message):
                         return True
 
                     mgr = owm.weather_manager()
-                    observation = mgr.weather_at_place(message.text)
+                    mgr.weather_at_place(message.text)
 
                     for i in range(len(city)):
                         if last_letter not in letters:
-                            last_letter = city.replace(city[:len(city) - 2 + i], "").replace(last_letter, "")
+                            last_letter = city.replace(city[:len(city) - 2 - i], "").replace(last_letter, "")
 
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt") as city:
                         cities = city.read()

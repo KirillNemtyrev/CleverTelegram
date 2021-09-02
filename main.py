@@ -1,8 +1,6 @@
-from functools import cache
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
-from aiogram.utils.markdown import hide_link
 
 import random
 from random import choice

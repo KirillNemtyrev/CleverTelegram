@@ -529,6 +529,14 @@ async def check_all_messages(message):
                     if int(records[2]) == message.from_user.id or first_letter != records[1]:
                         return True
 
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt") as city:
+                        cities = city.read()
+
+                    result = cities.split(" ")
+                    for temp in result:
+                        if temp.lower() == message.text.lower():
+                            return await message.reply("🍍 *Местность*\n\nЭта местность уже была!", parse_mode="Markdown")
+
                     mgr = owm.weather_manager()
                     mgr.weather_at_place(message.text)
 
@@ -537,14 +545,6 @@ async def check_all_messages(message):
                         if last_letter not in letters:
                             last_letter = city.replace(city[:len(city) - 2 - count], "").replace(last_letter, "")
                             count += 1
-
-                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt") as city:
-                        cities = city.read()
-
-                    result = cities.split(" ")
-                    for temp in result:
-                        if temp.lower() == message.text.lower():
-                            return await message.reply("🍍 *Местность*\n\nЭта местность уже была!", parse_mode="Markdown")
 
                     with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/titles.txt", "+w") as city:
                         city.write(cities + message.text + " ")

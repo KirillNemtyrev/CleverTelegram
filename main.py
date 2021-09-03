@@ -541,7 +541,7 @@ async def scallop_command(message: types.Message):
         third_lett = choice(scallop_letters)
         scallop_letters.remove(third_lett)
 
-        step_first_message = await bot.send_message(message.chat.id, "🍍 Гребешок\n\n[%s](tg://user?id=%d) запустил игру!\n\nСуть игры: составляйте слова из предложенный букв\nСлова должны быть существительными\nПредоставленные буквы обязательно должны находиться в слове\nБуквы: *%s %s %s*" % (message.from_user.first_name,message.from_user.id,first_lett,second_lett,third_lett), parse_mode="Markdown")
+        step_first_message = await bot.send_message(message.chat.id, "🍍 *Гребешок*\n\n[%s](tg://user?id=%d) запустил игру!\n\n*Суть игры:*\n✏ Составляйте слова из предложенных букв\n✏ Слова должны быть существительными\n✏ Предоставленные буквы обязательно должны находиться в слове\n\nБуквы: *%s %s %s*" % (message.from_user.first_name,message.from_user.id,first_lett,second_lett,third_lett), parse_mode="Markdown")
 
         with open("chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
             game.write("SCALLOP|%s|%s|%s" % (first_lett,second_lett,third_lett))

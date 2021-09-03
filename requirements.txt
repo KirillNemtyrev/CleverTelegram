@@ -3,3 +3,4 @@ aiogram
 beautifulsoup4
 lxml
 pyowm
+pymorphy2

@@ -21,7 +21,6 @@ dp = Dispatcher(bot)
 owm = OWM(API_KEY)
 
 letters = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Я"]
-not_spam_text = {}
 not_spam_commands = {}
 
 # Check have user admin in group
@@ -172,7 +171,7 @@ async def start_command(message: types.Message):
         if message.chat.id not in not_spam_commands:
             not_spam_commands[message.chat.id] = time.time()
         else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 2000:
                 if await is_admin_group(message.chat.id, bot.id):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
@@ -194,7 +193,7 @@ async def mute_command(message: types.Message):
         if message.chat.id not in not_spam_commands:
             not_spam_commands[message.chat.id] = time.time()
         else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 2000:
                 if await is_admin_group(message.chat.id, bot.id):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
@@ -230,7 +229,7 @@ async def kick_command(message: types.Message):
         if message.chat.id not in not_spam_commands:
             not_spam_commands[message.chat.id] = time.time()
         else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 2000:
                 if await is_admin_group(message.chat.id, bot.id):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
@@ -271,7 +270,7 @@ async def hand_command(message: types.Message):
         if message.chat.id not in not_spam_commands:
             not_spam_commands[message.chat.id] = time.time()
         else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 2000:
                 if await is_admin_group(message.chat.id, bot.id):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
@@ -302,7 +301,7 @@ async def crosses_command(message: types.Message):
         if message.chat.id not in not_spam_commands:
             not_spam_commands[message.chat.id] = time.time()
         else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 2000:
                 if await is_admin_group(message.chat.id, bot.id):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
@@ -355,7 +354,7 @@ async def crosses_command(message: types.Message):
         if message.chat.id not in not_spam_commands:
             not_spam_commands[message.chat.id] = time.time()
         else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 2000:
                 if await is_admin_group(message.chat.id, bot.id):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
@@ -406,7 +405,7 @@ async def associations_command(message: types.Message):
         if message.chat.id not in not_spam_commands:
             not_spam_commands[message.chat.id] = time.time()
         else:
-            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 5000:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 2000:
                 if await is_admin_group(message.chat.id, bot.id):
                     return await bot.delete_message(message.chat.id, message.message_id)
                 return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
@@ -495,15 +494,6 @@ def parse_words(chat_id, word):
 @dp.message_handler(content_types=["text"])
 async def check_all_messages(message):
     try:
-        if not is_game_in_chat(message.chat.id) and message.chat.id != message.from_user.id:
-            if message.from_user.id not in not_spam_text:
-                not_spam_text[message.from_user.id] = time.time()
-            else:
-                if (time.time() - not_spam_text[message.from_user.id]) * 1000 < 2000:
-                    if await is_admin_group(message.chat.id, bot.id):
-                        return await bot.delete_message(message.chat.id, message.message_id)
-                not_spam_text[message.from_user.id] = time.time()
-
         if is_game_in_chat(message.chat.id):
             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                 game_text = game.read()

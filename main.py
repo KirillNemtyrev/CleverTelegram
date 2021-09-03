@@ -14,7 +14,10 @@ from pyowm import OWM
 from pyowm.utils.config import get_default_config
 
 from bs4 import BeautifulSoup
-from config import TOKEN,DEVELOPER,API_KEY
+from config import TOKEN,API_KEY
+
+import pymorphy2
+morph = pymorphy2.MorphAnalyzer()
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
@@ -65,6 +68,10 @@ def verification_dirs_chat(chat_id):
         if not os.path.exists(path):
             os.mkdir(path)
 
+        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "scallop")
+        if not os.path.exists(path):
+            os.mkdir(path)
+
     except Exception as e:
         print(repr(e))
 
@@ -106,6 +113,14 @@ def remove_dirs_chat(chat_id):
                     for temp in files:
                         os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/titles/" + temp)
                 os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/titles")
+
+            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "scallop")
+            if os.path.exists(path):
+                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/scallop")
+                if files:
+                    for temp in files:
+                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/scallop/" + temp)
+                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/scallop")
 
             files = os.listdir(os.getcwd() + "/chats/" + str(chat_id))
             if files:
@@ -488,6 +503,93 @@ def parse_words(chat_id, word):
                     parse.write(item.get_text() + ",")
 
     except Exception as e:
+        print(repr(e))
+
+# Command: associations
+@dp.message_handler(commands=['scallop'])
+async def scallop_command(message: types.Message):
+    try:
+        if message.chat.id == message.from_user.id:
+            return await bot.send_message(message.from_user.id, "🍍 Эту игру можно запустить только в группе)")
+
+        if not await is_admin_group(message.chat.id, bot.id):
+            return await message.reply("🍍 Для запуска данной игры мне нужны права Администратора.")
+
+        if message.chat.id not in not_spam_commands:
+            not_spam_commands[message.chat.id] = time.time()
+        else:
+            if (time.time() - not_spam_commands[message.chat.id]) * 1000 < 2000:
+                if await is_admin_group(message.chat.id, bot.id):
+                    return await bot.delete_message(message.chat.id, message.message_id)
+                return await message.reply("🍍 *Попрошу не спамить...*", parse_mode="Markdown")
+            not_spam_commands[message.chat.id] = time.time()
+
+        if is_game_in_chat(message.chat.id):
+            if await is_admin_group(message.chat.id, bot.id):
+                return await bot.delete_message(message.chat.id, message.message_id)
+            return message.answer("🍍 *В чате уже идёт игра!*", parse_mode="Markdown")
+
+        verification_dirs_chat(message.chat.id)
+
+        scallop_letters = ["Б", "В", "Г", "Д", "К", "Л", "М", "Н", "П", "Р", "С", "Т"]
+        first_lett = choice(scallop_letters)
+        scallop_letters.remove(first_lett)
+
+        second_lett = choice(scallop_letters)
+        scallop_letters.remove(second_lett)
+
+        third_lett = choice(scallop_letters)
+        scallop_letters.remove(third_lett)
+
+        step_first_message = await bot.send_message(message.chat.id, "🍍 Гребешок\n\n[%s](tg://user?id=%d) запустил игру!\n\nСуть игры: составляйте слова из предложенный букв\nПредоставленные буквы обязательно должны находиться в слове\nБуквы: *%s %s %s*" % (message.from_user.first_name,message.from_user.id,first_lett,second_lett,third_lett), parse_mode="Markdown")
+
+        with open("chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
+            game.write("SCALLOP|%s|%s|%s" % (first_lett,second_lett,third_lett))
+
+        open("chats/" + str(message.chat.id) + "/words.txt", "+w")
+
+        await asyncio.sleep(60)
+        step_second_message = await bot.send_message(message.chat.id, "🍍 *Гребешок*\n\nБуквы для слов: *%s %s %s*\n⌛Осталось: 60 секунд..." % (first_lett,second_lett,third_lett), parse_mode="Markdown")
+
+        await asyncio.sleep(30)
+        step_third_message = await bot.send_message(message.chat.id, "🍍 *Гребешок*\n\nБуквы для слов: *%s %s %s*\n⌛Осталось: 30 секунд..." % (first_lett,second_lett,third_lett), parse_mode="Markdown")
+
+        await asyncio.sleep(30)
+        dirs = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop")
+
+        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt")
+        os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/words.txt")
+
+        if not dirs:
+            if await is_admin_group(message.chat.id, bot.id):
+                # Remove messages
+                await bot.delete_message(message.chat.id, message.message_id)
+                await bot.delete_message(message.chat.id, step_first_message.message_id)
+                await bot.delete_message(message.chat.id, step_second_message.message_id)
+                return await bot.delete_message(message.chat.id, step_third_message.message_id)
+
+            return await bot.send_message(message.chat.id, "🍍 *Гребешок*\nИгра завершена!", parse_mode="Markdown")
+
+        game_message = "🍍 *Гребешок*\nИгра завершена!\n\nУчастники:\n"
+        win_message = ""
+        max = 0
+
+        for item in dirs:
+            if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop/" + item):
+                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop/" + item) as player:
+                    score = int(player.read())
+                    
+                info = await bot.get_chat_member(message.chat.id, int(item.replace(".txt", "")))
+                os.remove(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop/" + item)
+                game_message += "[%s](tg://user?id=%d) - ⚡ %d очков.\n" % (info.user.first_name, int(item.replace(".txt", "")), score)
+
+                if score > max:
+                    max = score
+                    win_message = "\nПобедитель:\n[%s](tg://user?id=%d) - ⚡ %d очков" % (info.user.first_name, int(item.replace(".txt", "")), score)
+
+        return await bot.send_message(message.chat.id, game_message + win_message, parse_mode="Markdown")   
+
+    except Exception as e:
         print(repr(e))  
 
 # Types: text
@@ -497,6 +599,38 @@ async def check_all_messages(message):
         if is_game_in_chat(message.chat.id):
             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
                 game_text = game.read()
+
+            if "SCALLOP" in game_text:
+                try:
+                    with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/info.txt") as game:
+                        records = game.read().split("|")
+
+                    if records[1] in message.text.upper() and records[2] in message.text.upper() and records[3] in message.text.upper():
+                        if morph.word_is_known(message.text):
+                            with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/words.txt") as parse:
+                                text = parse.read()
+
+                            text_split = text.split(",")
+                            for item in text_split:
+                                if item.lower() == message.text.lower():
+                                    return await message.reply("🍍 *Гребешок*\n\nСлово уже было!", parse_mode="Markdown")
+
+                            with open("chats/" + str(message.chat.id) + "/words.txt", "+w") as parse:
+                                parse.write(message.text + ",")
+
+                            await message.reply("🍍 *Гребешок*\n\nСлово *%s* засчитано\n⚡ *+%d очков*" % (message.text, len(message.text) / 2), parse_mode="Markdown")  
+                            if os.path.isfile(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop/" + str(message.from_user.id) + ".txt"):
+                                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop/" + str(message.from_user.id) + ".txt") as player:
+                                    score = int(player.read())
+
+                                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                                    player.write(str(score + int(len(message.text) / 2)))
+                            else:
+                                with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop/" + str(message.from_user.id) + ".txt" , "+w") as player:
+                                    player.write(str(int(len(message.text) / 2)))
+
+                except Exception as e:
+                    print(repr(e)) 
 
             if "TITLES" in game_text:
                 try:
@@ -613,7 +747,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
         code = callback_query.data
         if code == "Игры":
 
-            message = "🍍 *Игры:*\n/associations - Игра в ассоциации\n/crosses - Игра крестики-нолики\n/hand - Камень-Ножницы-Бумага\n/titles - Названия местностей"
+            message = "🍍 *Игры:*\n/associations - Игра в ассоциации\n/crosses - Игра крестики-нолики\n/hand - Камень-Ножницы-Бумага\n/scallop - Игра гребешок\n/titles - Названия местностей"
             return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=None)
         
         elif code == "Помощь":

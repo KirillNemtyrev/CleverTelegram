@@ -495,15 +495,6 @@ def parse_words(chat_id, word):
 @dp.message_handler(content_types=["text"])
 async def check_all_messages(message):
     try:
-        with open(os.getcwd() + "/info/bad_words.txt", encoding="utf8") as bad_words:
-            text = bad_words.read().split(" ")
-
-        for temp in text:
-            if temp in message.text.lower():
-                if await is_admin_group(message.chat.id, bot.id):
-                    return await bot.delete_message(message.chat.id, message.message_id)
-                return await message.reply("🤬 Попрошу не выражаться!")
-
         if not is_game_in_chat(message.chat.id) and message.chat.id != message.from_user.id:
             if message.from_user.id not in not_spam_text:
                 not_spam_text[message.from_user.id] = time.time()

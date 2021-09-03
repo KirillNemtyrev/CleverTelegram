@@ -541,7 +541,7 @@ async def scallop_command(message: types.Message):
         third_lett = choice(scallop_letters)
         scallop_letters.remove(third_lett)
 
-        step_first_message = await bot.send_message(message.chat.id, "🍍 Гребешок\n\n[%s](tg://user?id=%d) запустил игру!\n\nСуть игры: составляйте слова из предложенный букв\nПредоставленные буквы обязательно должны находиться в слове\nБуквы: *%s %s %s*" % (message.from_user.first_name,message.from_user.id,first_lett,second_lett,third_lett), parse_mode="Markdown")
+        step_first_message = await bot.send_message(message.chat.id, "🍍 Гребешок\n\n[%s](tg://user?id=%d) запустил игру!\n\nСуть игры: составляйте слова из предложенный букв\nСлова должны быть существительными\nПредоставленные буквы обязательно должны находиться в слове\nБуквы: *%s %s %s*" % (message.from_user.first_name,message.from_user.id,first_lett,second_lett,third_lett), parse_mode="Markdown")
 
         with open("chats/" + str(message.chat.id) + "/info.txt", "+w") as game:
             game.write("SCALLOP|%s|%s|%s" % (first_lett,second_lett,third_lett))
@@ -607,6 +607,10 @@ async def check_all_messages(message):
 
                     if records[1] in message.text.upper() and records[2] in message.text.upper() and records[3] in message.text.upper():
                         if morph.word_is_known(message.text):
+                            word = morph.parse(message.text)[0]
+                            if word.tag.POS != "NOUN":
+                                return True
+
                             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/words.txt") as parse:
                                 text = parse.read()
 

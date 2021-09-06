@@ -836,13 +836,13 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                 zero_player_index = callback_query.from_user.id
                 zero_player_name = callback_query.from_user.first_name
 
-            message = "🍍 Игра началась!\n⌛ На ход: *60 секунд*\n\n❌ [%s](tg://user?id=%d) ходит крестиками\n⭕ [%s](tg://user?id=%d) ходит ноликами\n\nПервым ходит: [%s](tg://user?id=%d) ❌" % (crosses_player_name, crosses_player_index, zero_player_name, zero_player_index, crosses_player_name, crosses_player_index)
+            message = "🍍 Игра началась!\n⌛ На ход: *20 секунд*\n\n❌ [%s](tg://user?id=%d) ходит крестиками\n⭕ [%s](tg://user?id=%d) ходит ноликами\n\nПервым ходит: [%s](tg://user?id=%d) ❌" % (crosses_player_name, crosses_player_index, zero_player_name, zero_player_index, crosses_player_name, crosses_player_index)
             await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=message, parse_mode="Markdown",reply_markup=keyboard)
             
             with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt", "w+") as game:
                 game.write("%d|%s|%d|%s|CROSS|1|0|0|0|0|0|0|0|0|0" % (crosses_player_index, crosses_player_name, zero_player_index, zero_player_name))
 
-            await asyncio.sleep(60)
+            await asyncio.sleep(20)
             if os.path.isfile(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt"):
                 with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt") as game:
                     game_split = game.read().split("|")
@@ -869,11 +869,11 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
                         crosses_position.append(int(game_info[i+6]))
 
                     if callback_query.from_user.id == int(game_info[0]) and game_info[4] == "CROSS":
-                        game_message = "🍍 Игра началась!\n⌛ На ход: *60 секунд*\n\n❌ [%s](tg://user?id=%s) ходит крестиками\n⭕ [%s](tg://user?id=%s) ходит ноликами\n\nСейчас ходит: [%s](tg://user?id=%s) ⭕" % (game_info[1], game_info[0], game_info[3], game_info[2], game_info[3], game_info[2])
+                        game_message = "🍍 Игра началась!\n⌛ На ход: *20 секунд*\n\n❌ [%s](tg://user?id=%s) ходит крестиками\n⭕ [%s](tg://user?id=%s) ходит ноликами\n\nСейчас ходит: [%s](tg://user?id=%s) ⭕" % (game_info[1], game_info[0], game_info[3], game_info[2], game_info[3], game_info[2])
                         crosses_position[position] = 2
                         write_to_txt = "%s|%s|%s|%s|ZERO|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d" % (game_info[0], game_info[1], game_info[2], game_info[3], int(game_info[5]) + 1, crosses_position[0],crosses_position[1],crosses_position[2],crosses_position[3],crosses_position[4],crosses_position[5],crosses_position[6],crosses_position[7],crosses_position[8])
                     else:
-                        game_message = "🍍 Игра началась!\n⌛ На ход: *60 секунд*\n\n❌ [%s](tg://user?id=%s) ходит крестиками\n⭕ [%s](tg://user?id=%s) ходит ноликами\n\nСейчас ходит: [%s](tg://user?id=%s) ❌" % (game_info[1], game_info[0], game_info[3], game_info[2], game_info[1], game_info[0])
+                        game_message = "🍍 Игра началась!\n⌛ На ход: *20 секунд*\n\n❌ [%s](tg://user?id=%s) ходит крестиками\n⭕ [%s](tg://user?id=%s) ходит ноликами\n\nСейчас ходит: [%s](tg://user?id=%s) ❌" % (game_info[1], game_info[0], game_info[3], game_info[2], game_info[1], game_info[0])
                         crosses_position[position] = 3
                         write_to_txt = "%s|%s|%s|%s|CROSS|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d" % (game_info[0], game_info[1], game_info[2], game_info[3], int(game_info[5]) + 1, crosses_position[0],crosses_position[1],crosses_position[2],crosses_position[3],crosses_position[4],crosses_position[5],crosses_position[6],crosses_position[7],crosses_position[8])
                     
@@ -909,7 +909,7 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
 
                     await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=keyboard)
                     if keyboard is not None:
-                        await asyncio.sleep(60)
+                        await asyncio.sleep(20)
                         if os.path.isfile(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt"):
                             with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/crosses/" + str(callback_query.message.message_id) + ".txt") as game:
                                 game_info_next = game.read().split("|")

@@ -23,6 +23,9 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 owm = OWM(API_KEY)
 
+cards = ["ДВА","ТРИ","ЧЕТЫРЕ","ПЯТЬ","ШЕСТЬ","СЕМЬ","ВОСЕМЬ","ДЕВЯТЬ","ВАЛЕТ","ДАМА","КОРОЛЬ","ТУЗ"]
+
+
 letters = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Я"]
 not_spam_commands = {}
 
@@ -69,6 +72,10 @@ def verification_dirs_chat(chat_id):
             os.mkdir(path)
 
         path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "scallop")
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "blackjack")
         if not os.path.exists(path):
             os.mkdir(path)
 
@@ -121,6 +128,14 @@ def remove_dirs_chat(chat_id):
                     for temp in files:
                         os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/scallop/" + temp)
                 os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/scallop")
+
+            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "blackjack")
+            if os.path.exists(path):
+                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/blackjack")
+                if files:
+                    for temp in files:
+                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/blackjack/" + temp)
+                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/blackjack")
 
             files = os.listdir(os.getcwd() + "/chats/" + str(chat_id))
             if files:
@@ -549,10 +564,10 @@ async def scallop_command(message: types.Message):
         open("chats/" + str(message.chat.id) + "/words.txt", "+w")
 
         await asyncio.sleep(60)
-        step_second_message = await bot.send_message(message.chat.id, "🍍 *Гребешок*\n\nБуквы для слов: *%s %s %s*\n⌛Осталось: 60 секунд..." % (first_lett,second_lett,third_lett), parse_mode="Markdown")
+        step_second_message = await bot.send_message(message.chat.id, "🍍 *Гребешок*\n\nБуквы для слов: *%s %s %s*\n⌛ Осталось: 60 секунд..." % (first_lett,second_lett,third_lett), parse_mode="Markdown")
 
         await asyncio.sleep(30)
-        step_third_message = await bot.send_message(message.chat.id, "🍍 *Гребешок*\n\nБуквы для слов: *%s %s %s*\n⌛Осталось: 30 секунд..." % (first_lett,second_lett,third_lett), parse_mode="Markdown")
+        step_third_message = await bot.send_message(message.chat.id, "🍍 *Гребешок*\n\nБуквы для слов: *%s %s %s*\n⌛ Осталось: 30 секунд..." % (first_lett,second_lett,third_lett), parse_mode="Markdown")
 
         await asyncio.sleep(30)
         dirs = os.listdir(os.getcwd() + "/chats/" + str(message.chat.id) + "/scallop")
@@ -775,7 +790,26 @@ async def some_callback_handler(callback_query: types.CallbackQuery):
             keyboard.add(*buttons)
 
             game_message = "🍍 *Вызов принят..*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d)\n2️⃣ [%s](tg://user?id=%d)\n\n⌛ Ход: *60 секунд*" % (callback_query.from_user.first_name, callback_query.from_user.id, callback_query.message.reply_to_message.from_user.first_name, callback_query.message.reply_to_message.from_user.id)
-            return await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=keyboard)
+            await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=keyboard)
+            
+            await asyncio.sleep(20)
+
+            if os.path.isfile(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt"):
+
+                with open(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt") as game:
+                    result = game.read().split("|")
+
+                os.remove(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt")
+
+                if result[4] == "None" and result[5] == "None":
+                    game_message = "🍍 *Игра окончена!*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d)\n2️⃣ [%s](tg://user?id=%d)\n\nНикто не сделал ход.." % (result[1], int(result[0]), result[3], int(result[2]))
+                elif result[4] == "None":
+                    game_message = "🍍 *Игра окончена!*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d) - Не сделал ход\n2️⃣ [%s](tg://user?id=%d)" % (result[1], int(result[0]), result[3], int(result[2]))
+                elif result[5] == "None":
+                    game_message = "🍍 *Игра окончена!*\n\nУчастники:\n1️⃣ [%s](tg://user?id=%d)\n2️⃣ [%s](tg://user?id=%d) - Не сделал ход" % (result[1], int(result[0]), result[3], int(result[2]))    
+                
+                await bot.edit_message_text(chat_id=callback_query.message.chat.id, message_id=callback_query.message.message_id, text=game_message, parse_mode="Markdown",reply_markup=None)
+
         elif code == "Камень" or code == "Ножницы" or code =="Бумага":
 
             if not os.path.isfile(os.getcwd() + "/chats/" + str(callback_query.message.chat.id) + "/hand/" + str(callback_query.message.message_id) + ".txt"):

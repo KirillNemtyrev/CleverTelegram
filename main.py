@@ -75,10 +75,6 @@ def verification_dirs_chat(chat_id):
         if not os.path.exists(path):
             os.mkdir(path)
 
-        path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "blackjack")
-        if not os.path.exists(path):
-            os.mkdir(path)
-
     except Exception as e:
         print(repr(e))
 
@@ -128,14 +124,6 @@ def remove_dirs_chat(chat_id):
                     for temp in files:
                         os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/scallop/" + temp)
                 os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/scallop")
-
-            path = os.path.join(os.getcwd() + "/chats/" + str(chat_id), "blackjack")
-            if os.path.exists(path):
-                files = os.listdir(os.getcwd() + "/chats/" + str(chat_id) + "/blackjack")
-                if files:
-                    for temp in files:
-                        os.remove(os.getcwd() + "/chats/" + str(chat_id) + "/blackjack/" + temp)
-                os.rmdir(os.getcwd() + "/chats/" + str(chat_id) + "/blackjack")
 
             files = os.listdir(os.getcwd() + "/chats/" + str(chat_id))
             if files:

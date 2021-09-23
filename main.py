@@ -23,9 +23,6 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 owm = OWM(API_KEY)
 
-cards = ["ДВА","ТРИ","ЧЕТЫРЕ","ПЯТЬ","ШЕСТЬ","СЕМЬ","ВОСЕМЬ","ДЕВЯТЬ","ВАЛЕТ","ДАМА","КОРОЛЬ","ТУЗ"]
-
-
 letters = ["А", "Б", "В", "Г", "Д", "Е", "Ж", "И", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Щ", "Я"]
 not_spam_commands = {}
 
@@ -619,7 +616,7 @@ async def check_all_messages(message):
 
                             text_split = text.split(",")
                             for item in text_split:
-                                if item.lower() == message.text.lower():
+                                if item.lower() in message.text.lower():
                                     return await message.reply("🍍 *Гребешок*\n\nСлово уже было!", parse_mode="Markdown")
 
                             with open("chats/" + str(message.chat.id) + "/words.txt", "+w") as parse:

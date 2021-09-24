@@ -616,7 +616,7 @@ async def check_all_messages(message):
 
                             text_split = text.split(",")
                             for item in text_split:
-                                if item.lower() in message.text.lower():
+                                if message.text.lower() in item.lower():
                                     return await message.reply("🍍 *Гребешок*\n\nСлово уже было!", parse_mode="Markdown")
 
                             with open("chats/" + str(message.chat.id) + "/words.txt", "+w") as parse:

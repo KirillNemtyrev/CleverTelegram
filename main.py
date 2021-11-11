@@ -775,8 +775,9 @@ async def check_all_messages(message):
             {"letter": "ю", "morse": "••–– "},
             {"letter": "я", "morse": "•–•– "},
         ]
+        string = message.text.lower()
         for temp in morse:
-            string = message.text.lower().replace(temp["letter"], temp["morse"])
+            string = string.replace(temp["letter"], temp["morse"])
 
         await message.answer(string)
 

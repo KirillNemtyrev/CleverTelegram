@@ -741,6 +741,45 @@ async def check_all_messages(message):
                             with open(os.getcwd() + "/chats/" + str(message.chat.id) + "/associations/" + str(message.from_user.id) + ".txt" , "+w") as player:
                                 player.write(str(int(len(message.text) / 2)))
 
+        morse = [
+            {"letter": "а", "morse": "•– "},
+            {"letter": "б", "morse": "–••• "},
+            {"letter": "в", "morse": "•–– "},
+            {"letter": "г", "morse": "––• "},
+            {"letter": "д", "morse": "–•• "},
+            {"letter": "е", "morse": "• "},
+            {"letter": "ж", "morse": "•••– "},
+            {"letter": "з", "morse": "––•• "},
+            {"letter": "и", "morse": "•• "},
+            {"letter": "й", "morse": "•––– "},
+            {"letter": "к", "morse": "–•– "},
+            {"letter": "л", "morse": "•–•• "},
+            {"letter": "м", "morse": "–– "},
+            {"letter": "н", "morse": "–• "},
+            {"letter": "о", "morse": "––– "},
+            {"letter": "п", "morse": "•––• "},
+            {"letter": "р", "morse": "•–• "},
+            {"letter": "с", "morse": "••• "},
+            {"letter": "т", "morse": "– "},
+            {"letter": "у", "morse": "••– "},
+            {"letter": "ф", "morse": "••–• "},
+            {"letter": "х", "morse": "•••• "},
+            {"letter": "ц", "morse": "–•–• "},
+            {"letter": "ч", "morse": "–––• "},
+            {"letter": "ш", "morse": "–––– "},
+            {"letter": "щ", "morse": "––•– "},
+            {"letter": "ъ", "morse": "•––•–• "},
+            {"letter": "ы", "morse": "–•–– "},
+            {"letter": "ь", "morse": "–••– "},
+            {"letter": "э", "morse": "••–•• "},
+            {"letter": "ю", "morse": "••–– "},
+            {"letter": "я", "morse": "•–•– "},
+        ]
+        for temp in morse:
+            string = message.text.lower().replace(temp["letter"], temp["morse"])
+
+        await message.answer(string)
+
     except Exception as e:
         print(repr(e))  
 
@@ -977,3 +1016,4 @@ if __name__ == "__main__":
             continue
 
     executor.start_polling(dp, skip_updates=True)
+

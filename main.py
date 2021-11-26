@@ -779,8 +779,8 @@ async def check_all_messages(message):
         string = string.replace("ё", "е")
         for temp in morse:
             string = string.replace(temp["letter"], temp["morse"])
-
-        await message.answer(string)
+        if message.from_user.id == message.chat.id:
+             await message.answer(string)
 
     except Exception as e:
         print(repr(e))  
